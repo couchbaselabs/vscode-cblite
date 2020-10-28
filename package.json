@@ -1,0 +1,317 @@
+{
+	"name": "vscode-cblite",
+	"icon": "resources/icon/icon_128x128.png",
+	"displayName": "cblite",
+	"description": "Explore and query Couchbase Lite databases",
+	"version": "0.1.0",
+	"publisher": "couchbase",
+    "repository": {
+        "url": "https://github.com/couchbaselabs/vscode-cblite",
+        "type": "git"
+    },
+	"engines": {
+		"vscode": "^1.30.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onLanguage:sql",
+		"onLanguage:db",
+		"onLanguage:n1ql",
+		"onLanguage:json",
+		"onCommand:cblite.showOutputChannel",
+		"onCommand:cblite.explorer.add",
+		"onCommand:cblite.explorer.remove",
+		"onCommand:cblite.newQueryN1ql",
+		"onCommand:cblite.newQueryJson",
+		"onCommand:cblite.runDocumentQuery"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "cblite.showOutputChannel",
+				"title": "Show output",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.explorer.add",
+				"title": "Open Database",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.explorer.remove",
+				"title": "Close Database",
+				"category": "cblite"
+			},
+			{
+                "command": "cblite.explorer.copyKey",
+                "title": "Copy Keypath",
+                "category": "cblite"
+			},
+			{
+                "command": "cblite.explorer.copyValue",
+                "title": "Copy Value",
+                "category": "cblite"
+			},
+			{
+                "command": "cblite.explorer.copyPath",
+                "title": "Copy Path",
+                "category": "cblite"
+			},
+			{
+                "command": "cblite.explorer.copyRelativePath",
+                "title": "Copy Relative Path",
+                "category": "cblite"
+            },
+			{
+				"command": "cblite.runDocumentQuery",
+				"title": "Run Query",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.useDatabase",
+				"title": "Use Database",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.newQueryN1ql",
+				"title": "New N1QL Query",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.newQueryJson",
+				"title": "New JSON Query",
+				"category": "cblite"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "cblite.runDocumentQuery",
+				"key": "ctrl+shift+q",
+				"mac": "cmd+shift+q",
+				"when": "editorLangId =~ /(sql|json)/"
+			}
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "cblite.explorer",
+					"name": "cblite explorer",
+					"when": "cblite.explorer.show"
+				}
+			]
+		},
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "cblite.showOutputChannel",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.explorer.add",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.explorer.remove",
+					"group": "cblite",
+					"when": "cblite.explorer.show"
+				},
+				{
+					"command": "cblite.explorer.copyKey",
+					"group": "cblite",
+					"when": "false"
+				},
+				{
+					"command": "cblite.explorer.copyValue",
+					"group": "cblite",
+					"when": "false"
+				},
+				{
+					"command": "cblite.explorer.copyPath",
+					"group": "cblite",
+					"when": "false"
+				},
+				{
+					"command": "cblite.explorer.copyRelativePath",
+					"group": "cblite",
+					"when": "false"
+				},
+				{
+					"command": "cblite.newQueryN1ql",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.newQueryJson",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.runDocumentQuery",
+					"when": "editorLangId =~ /(sql|json)/",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.useDatabase",
+					"when": "editorLangId =~ /(sql|json)/",
+					"group": "cblite"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "cblite.explorer.add",
+					"when": "resourceLangId == db && explorerResourceIsFolder",
+					"group": "navigation@1"
+				},
+				{
+					"command": "cblite.newQueryN1ql",
+					"when": "resourceLangId == db",
+					"group": "0_cblite@1"
+				},
+				{
+					"command": "cblite.newQueryJson",
+					"when": "resourceLangId == db",
+					"group": "0_cblite@2"
+				}
+			],
+			"editor/context": [
+				{
+					"when": "editorTextFocus && editorLangId =~ /(sql|json)/",
+					"command": "cblite.useDatabase",
+					"group": "9.1_cblite@3"
+				}
+			],
+			"view/title": [
+				{
+					"command": "cblite.newQueryN1ql",
+					"when": "view == cblite.explorer",
+					"group": "navigation@1"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "cblite.newQueryN1ql",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "inline@1"
+				},
+				{
+					"command": "cblite.newQueryN1ql",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "2_query@1"
+				},
+				{
+					"command": "cblite.newQueryJson",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "2_query@2"
+				},
+				{
+					"command": "cblite.explorer.copyPath",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "3_copy@1"
+				},
+				{
+					"command": "cblite.explorer.copyRelativePath",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "3_copy@2"
+				},
+				{
+					"command": "cblite.explorer.remove",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "4_utils@1"
+				},
+				
+				{
+                    "command": "cblite.explorer.copyKey",
+                    "when": "view == cblite.explorer && viewItem == cblite.documentItem",
+                    "group": "3_copy@1"
+				},
+				{
+                    "command": "cblite.explorer.copyKey",
+                    "when": "view == cblite.explorer && viewItem == cblite.collectionItem",
+                    "group": "3_copy@1"
+				},
+				{
+                    "command": "cblite.explorer.copyKey",
+                    "when": "view == cblite.explorer && viewItem == cblite.keyItem",
+                    "group": "3_copy@1"
+				},
+				{
+                    "command": "cblite.explorer.copyKey",
+                    "when": "view == cblite.explorer && viewItem == cblite.valueItem",
+                    "group": "3_copy@1"
+				},
+				{
+                    "command": "cblite.explorer.copyValue",
+                    "when": "view == cblite.explorer && viewItem == cblite.valueItem",
+                    "group": "3_copy@2"
+                }
+			]
+		},
+		"languages": [
+			{
+				"id": "n1ql",
+				"aliases": [
+					"N1QL"
+				],
+				"extensions": [
+					".n1ql"
+				]
+			},
+			{
+				"id": "db",
+				"aliases": [
+					"Database"
+				],
+				"extensions": [
+					".cblite2"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "n1ql",
+				"scopeName": "source.sql.n1ql",
+				"path": "./syntaxes/n1ql.tmLanguage.json"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "CBLite Configuration",
+			"properties": {
+				"cblite.cblite": {
+					"type": "string",
+					"default": "cblite",
+					"description": "Command used to execute cblite binary (must be either absolute path or in system path)"
+				},
+				"cblite.logLevel": {
+					"type": "string",
+					"enum": [
+						"DEBUG",
+						"INFO",
+						"WARN",
+						"ERROR"
+					],
+					"default": "INFO",
+					"description": "Logging level in the output channel (DEBUG, INFO, WARN, ERROR)"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "tslint src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.23.0",
+		"@types/node": "^12.11.7",
+		"@eslint/eslintrc": "^0.1.3",
+		"glob": "^7.1.6",
+		"eslint": "^7.11.0",
+		"typescript": "^4.0.2",
+		"vscode-test": "^1.4.0"
+	}
+}
