@@ -11,7 +11,7 @@ class Explorer implements Disposable {
     constructor(context: ExtensionContext) {
         let subscriptions = [];
 
-        this.explorerTreeProvider = new ExplorerTreeProvider(context);
+        this.explorerTreeProvider = new ExplorerTreeProvider();
         subscriptions.push(window.createTreeView(Constants.cbliteExplorerViewId, { treeDataProvider: this.explorerTreeProvider }));
 
         this.disposable = Disposable.from(...subscriptions);

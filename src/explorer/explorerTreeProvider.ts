@@ -1,5 +1,5 @@
 import { Schema } from "../common";
-import { Event, EventEmitter, ExtensionContext, ProviderResult, TreeDataProvider, TreeItem } from "vscode";
+import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from "vscode";
 import { DBItem, DocumentItem, KeyItem, ValueItem } from "./treeItem";
 
 export class ExplorerTreeProvider implements TreeDataProvider<Schema.Item> {
@@ -8,7 +8,7 @@ export class ExplorerTreeProvider implements TreeDataProvider<Schema.Item> {
 
     private databaseList: Schema.Database[];
 
-    constructor(private context: ExtensionContext) {
+    constructor() {
         this.databaseList = [];
     }
 

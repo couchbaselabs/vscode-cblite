@@ -105,13 +105,25 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return useDatabase();
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.newQueryN1ql, (db?: {path: string}) => {
-        let dbPath = db? db.path : undefined;
+	context.subscriptions.push(commands.registerCommand(Commands.newQueryN1ql, (db?: Uri|Schema.Database) => {
+        let dbPath: string | undefined;
+		if(db instanceof Uri) {
+			dbPath = db.fsPath;
+		} else {
+			dbPath = db?.path;
+		}
+
         return newQuery(dbPath, "select _id limit 100");
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.newQueryJson, (db?: {path: string}) => {
-        let dbPath = db? db.path : undefined;
+	context.subscriptions.push(commands.registerCommand(Commands.newQueryJson, (db?: Uri|Schema.Database) => {
+		let dbPath: string | undefined;
+		if(db instanceof Uri) {
+			dbPath = db.fsPath;
+		} else {
+			dbPath = db?.path;
+		}
+
         return newQuery(dbPath, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
 	}));
 
@@ -195,12 +207,17 @@ async function runDocumentQuery() {
 async function runQuery(dbPath: string, query: string, display: boolean) {
 	let results = await executeQuery(cbliteCommand, dbPath, query, window.activeTextEditor?.document.languageId !== "json").then(({results, error}) => {
 		if(error) {
-			logger.error(error.message);
+			logger.error(`\n${error.message}`);
 			showErrorMessage(error.message, {title: "Show Output", command: Commands.showOutputChannel});
+			return undefined;
 		}
 
 		return results;
 	});
+
+	if(!results) {
+		return;
+	}
 
 	if(display) {
 		var doc = await workspace.openTextDocument({content: results, language: "json"});
