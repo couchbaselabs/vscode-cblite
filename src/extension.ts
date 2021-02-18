@@ -39,12 +39,12 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	configuration = getConfiguration();
 	logger.setLogLevel(configuration.logLevel);
-	setCbliteCommand(configuration.cblite);
+	setCbliteCommand(configuration.cblite, context.extensionPath);
 
 	context.subscriptions.push(workspace.onDidChangeConfiguration(() => {
 		configuration = getConfiguration();
 		logger.setLogLevel(configuration.logLevel);
-		setCbliteCommand(configuration.cblite);
+		setCbliteCommand(configuration.cblite, context.extensionPath);
 	}));
 
 	cbliteWorkspace = new CbliteWorkspace();
@@ -225,9 +225,9 @@ async function runQuery(dbPath: string, query: string, display: boolean) {
 	}
 }
 
-function setCbliteCommand(command: string) {
+function setCbliteCommand(command: string, extensionPath: string) {
 	try {
-		cbliteCommand = validateCbliteCommand(command);
+		cbliteCommand = validateCbliteCommand(command, extensionPath);
 	} catch(e) {
 		logger.error(e.message);
 		showErrorMessage(e.message, {title: "Show output", command: Commands.showOutputChannel});
