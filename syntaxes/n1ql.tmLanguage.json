@@ -140,7 +140,7 @@
             }]
         },
         "function": {
-            "begin": "\\b([A-Za-z]\\w+)\\b\\s*(\\()",
+            "begin": "(?i)\\b(array_avg|array_contains|array_count|array_ifnull|array_length|array_max|array_min|array_of|array_sum|greatest|least|ifmissing|ifnull|ifmissingornull|missingif|nullif|millis_to_str|millis_to_utc|str_to_millis|str_to_utc|abs|acos|asin|atan|atan2|ceil|cos|degrees|e|exp|floor|ln|log|pi|power|radians|round|sign|sin|sqrt|tan|trunc|regexp_contains|regexp_like|regexp_position|regexp_replace|contains|length|lower|ltrim|rtrim|trim|upper|isarray|isatom|isboolean|isnumber|isobject|isstring|type|toarray|toatom|toboolean|tonumber|toobject|tostring|rank|avg|count|max|min|sum)\\b\\s*(\\()",
             "end": "\\)",
             "name": "meta.function-call.sql.n1ql",
             "beginCaptures": {
@@ -153,7 +153,7 @@
             }]
         },
         "keyword": {
-            "match": "(?i)\\b(and|as|asc|begin|between|by|case|collate|cross|desc|distinct|else|end|exists|from|group|having|in|inner|is|join|key|left|like|limit|not|null|offset|on|or|order|outer|range|select|when|where|with)\\b",
+            "match": "(?i)\\b(and|any|as|asc|between|by|case|collate|cross|desc|distinct|else|end|every|from|group|having|in|inner|is|join|left|like|limit|natural|not|offset|on|or|order|outer|regex|right|satisfies|select|then|using|when|where)\\b",
             "name": "keyword.other.sql.n1ql"
         },
         "name": {
@@ -166,13 +166,13 @@
             }]
         },
         "bare-name": {
-            "match": "\\b(?i)(?!and\\b|as\\b|asc\\b|begin\\b|between\\b|by\\b|case\\b|collate\\b|cross\\b|desc\\b|distinct\\b|else\\b|end\\b|exists\\b|from\\b|group\\b|having\\b|in\\b|inner\\b|is\\b|join\\b|key\\b|left\\b|like\\b|limit\\b|not\\b|null\\b|offset\\b|on\\b|or\\b|order\\b|outer\\b|range\\b|select\\b|when\\b|where\\b|with\\b)\\w+\\b",
+            "match": "\\b(?i)(?!and\\b|any\\b|as\\b|asc\\b|between\\b|by\\b|case\\b|collate\\b|cross\\b|desc\\b|distinct\\b|else\\b|end\\b|every\\b|from\\b|group\\b|having\\b|in\\b|inner\\b|is\\b|join\\b|left\\b|like\\b|limit\\b|natural\\b|not\\b|offset\\b|on\\b|or\\b|order\\b|outer\\b|regex\\b|right\\b|satisfies\\b|select\\b|then\\b|using\\b|when\\b|where\\b)\\w+\\b",
             "name": "variable.other.bare"
         },
         "doublequoted-name": {
             "begin": "\"",
             "end": "\"(?!\")",
-            "name": "variable.other.quoted.double",
+            "name": "string.quoted.double.sql.n1ql",
             "patterns": [{
                 "match": "\"\"",
                 "name": "constant.character.escape.doublequote.sql.n1ql"
@@ -181,7 +181,7 @@
         "backquoted-name": {
             "begin": "`",
             "end": "`(?!`)",
-            "name": "variable.other.quoted.other",
+            "name": "string.quoted.backtick.sql.n1ql",
             "patterns": [{
                 "match": "``",
                 "name": "constant.character.escape.backquote.sql.n1ql"

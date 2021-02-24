@@ -1,4 +1,4 @@
-import { commands, ExtensionContext, Position, TextDocument, Uri, window, workspace } from "vscode";
+import { commands, ExtensionContext, languages, Position, TextDocument, Uri, window, workspace } from "vscode";
 import { getEditorQueryDocument, pickWorkspaceDatabase, pickListDatabase, showErrorMessage, createQueryDocument } from "./vscodewrapper";
 import CbliteWorkspace from "./cbliteworkspace";
 import { executeQuery, schema } from "./cblite/cblite";
@@ -9,6 +9,7 @@ import { validateCbliteCommand } from "./cblite/cbliteCommandValidation";
 import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
 import { Schema } from "./common";
+import { N1QLProvider } from "./providers/n1ql.provider"
 
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
@@ -126,6 +127,9 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
         return newQuery(dbPath, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
 	}));
+
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
+	languages.registerCompletionItemProvider("n1ql", N1QLProvider, ...characters);
 
 
 	logger.info("Extension activated.");
