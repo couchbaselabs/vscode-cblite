@@ -1,7 +1,12 @@
 import { TextDocument } from "vscode";
 
+class DocumentCBLiteInfo {
+    databaseName?: string;
+    documentName?: string;
+}
+
 interface Bindings {
-    [documentId: string]: string
+    [documentId: string]: DocumentCBLiteInfo
 }
 
 export class DocumentDatabaseBindings {
@@ -11,27 +16,68 @@ export class DocumentDatabaseBindings {
         this.bindings = {};
     }
 
-    bind(document: TextDocument | undefined, dbPath: string): boolean {
+    bindDatabase(document: TextDocument | undefined, dbPath: string): boolean {
         if(document) {
-            this.bindings[document.uri.toString()] = dbPath;
+            let key = document.uri.toString();
+            if(!(key in this.bindings)) {
+                this.bindings[key] = new DocumentCBLiteInfo();
+            }
+
+            this.bindings[document.uri.toString()].databaseName = dbPath;
             return true;
         }
 
         return false;
     }
 
-    get(document: TextDocument | undefined): string | undefined {
+    bindDocumentID(document: TextDocument | undefined, id: string): boolean {
         if(document) {
-            return this.bindings[document.uri.toString()];
+            let key = document.uri.toString();
+            if(!(key in this.bindings)) {
+                this.bindings[key] = new DocumentCBLiteInfo();
+            }
+
+            this.bindings[document.uri.toString()].documentName = id;
+            return true;
+        }
+
+        return false;
+    }
+
+    getDatabase(document: TextDocument | undefined): string | undefined {
+        if(document) {
+            return this.bindings[document.uri.toString()]?.databaseName;
         }
 
         return undefined;
     }
 
-    unbind(dbPath: string) {
+    getDocumentID(document: TextDocument | undefined): string | undefined {
+        if(document) {
+            return this.bindings[document.uri.toString()]?.documentName;
+        }
+
+        return undefined;
+    }
+
+    unbindDatabase(dbPath: string) {
         Object.keys(this.bindings).forEach((docId) => {
-            if(this.bindings[docId] === dbPath) {
-                delete this.bindings[docId];
+            if(this.bindings[docId].databaseName === dbPath) {
+                this.bindings[docId].databaseName = undefined;
+                if(!this.bindings[docId].documentName) {
+                    delete this.bindings[docId];
+                }
+            }
+        });
+    }
+
+    unbindDocumentID(docId: string) {
+        Object.keys(this.bindings).forEach((docId) => {
+            if(this.bindings[docId].documentName === docId) {
+                this.bindings[docId].documentName = undefined;
+                if(!this.bindings[docId].databaseName) {
+                    delete this.bindings[docId];
+                }
             }
         });
     }

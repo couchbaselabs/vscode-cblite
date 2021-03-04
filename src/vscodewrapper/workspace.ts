@@ -22,3 +22,10 @@ export function createQueryDocument(content: string, cursorPos: Position, show?:
         return Promise.resolve(doc);
     });
 }
+
+export function createDocContentDocument(json: string): Thenable<TextDocument> {
+    return workspace.openTextDocument({language: "json", content: json}).then(doc => {
+        window.showTextDocument(doc, ViewColumn.One);
+        return Promise.resolve(doc);
+    });
+}

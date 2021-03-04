@@ -8,7 +8,7 @@ export interface QueryResult {
 
 export function executeQuery(cbliteCommand: string, dbPath: string, query: string, n1ql: boolean): Promise<QueryResult> {
     let subCommand = n1ql ? "select" : "query";
-    return executeCommand(cbliteCommand, [subCommand, "--raw", dbPath, query.replace("select ", "")]);
+    return executeCommand(cbliteCommand, [subCommand, "--raw", dbPath, query.toLowerCase().replace("select ", "")]);
 }
 
 export function executeCommand(cbliteCommand: string, cliArgs: string[]): Promise<QueryResult> {

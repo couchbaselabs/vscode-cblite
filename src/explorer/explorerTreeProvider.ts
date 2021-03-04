@@ -1,6 +1,6 @@
 import { Schema } from "../common";
 import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from "vscode";
-import { DBItem, DocumentItem, KeyItem, ValueItem } from "./treeItem";
+import { DBItem, DocumentItem, KeyItem, ShowMoreItem, ValueItem } from "./treeItem";
 
 export class ExplorerTreeProvider implements TreeDataProvider<Schema.Item> {
     private _onDidChangeTreeData: EventEmitter<Schema.Item | undefined> = new EventEmitter<Schema.Item | undefined>();
@@ -45,6 +45,8 @@ export class ExplorerTreeProvider implements TreeDataProvider<Schema.Item> {
             return new DocumentItem(item.id);
         } else if('name' in item) {
             return new KeyItem(item.name);
+        } else if(!('value' in item)) {
+            return new ShowMoreItem(item.parent, this);
         }
 
         return new ValueItem(item.value);
@@ -57,7 +59,14 @@ export class ExplorerTreeProvider implements TreeDataProvider<Schema.Item> {
     getChildren(item?: Schema.Item): ProviderResult<Schema.Item[]> {
         if(item) {
             if('documents' in item) {
-                return item.documents;
+                if(item.limit < item.documents.length) {
+                    var l = [];
+                    l.push(... item.documents.slice(0, item.limit))
+                    l.push({parent: item} as Schema.ShowMore);
+                    return l;
+                } else {
+                    return item.documents;
+                }
             } else if('keys' in item) {
                 return item.keys;
             } else if('array' in item) {

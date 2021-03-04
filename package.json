@@ -23,8 +23,7 @@
 		"onCommand:cblite.explorer.add",
 		"onCommand:cblite.explorer.remove",
 		"onCommand:cblite.newQueryN1ql",
-		"onCommand:cblite.newQueryJson",
-		"onCommand:cblite.runDocumentQuery"
+		"onCommand:cblite.newQueryJson"
 	],
 	"main": "./dist/extension",
 	"contributes": {
@@ -65,6 +64,11 @@
                 "category": "cblite"
             },
 			{
+				"command": "cblite.explorer.lookupDocument",
+				"title": "Get Document",
+				"category": "cblite"
+			},
+			{
 				"command": "cblite.runDocumentQuery",
 				"title": "Run Query",
 				"category": "cblite"
@@ -84,6 +88,21 @@
 				"title": "New JSON Query",
 				"category": "cblite",
 				"enablement": "config.cblite.enableJSON"
+			},
+			{
+				"command": "cblite.createDocument",
+				"title": "Create New Document",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.updateDocument",
+				"title": "Update Document",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.explorer.getDocument",
+				"title": "Get Document",
+				"category": "cblite"
 			}
 		],
 		"keybindings": [
@@ -154,7 +173,17 @@
 				},
 				{
 					"command": "cblite.useDatabase",
-					"when": "editorLangId =~ /n1ql/ || (config.cblite.enableJSON && editorLangId =~ /json/)",
+					"when": "editorLangId =~ /n1ql/ || editorLangId =~ /json/",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.createDocument",
+					"when": "editorLangId =~ /json/",
+					"group": "cblite"
+				},
+				{
+					"command": "cblite.updateDocument",
+					"when": "editorLangId =~ /json/",
 					"group": "cblite"
 				}
 			],
@@ -163,16 +192,6 @@
 					"command": "cblite.explorer.add",
 					"when": "resourceLangId == db && explorerResourceIsFolder",
 					"group": "navigation@1"
-				},
-				{
-					"command": "cblite.newQueryN1ql",
-					"when": "resourceLangId == db",
-					"group": "0_cblite@1"
-				},
-				{
-					"command": "cblite.newQueryJson",
-					"when": "resourceLangId == db && config.cblite.enableJSON",
-					"group": "0_cblite@2"
 				}
 			],
 			"editor/context": [
@@ -182,19 +201,7 @@
 					"group": "9.1_cblite@3"
 				}
 			],
-			"view/title": [
-				{
-					"command": "cblite.newQueryN1ql",
-					"when": "view == cblite.explorer",
-					"group": "navigation@1"
-				}
-			],
 			"view/item/context": [
-				{
-					"command": "cblite.newQueryN1ql",
-					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "inline@1"
-				},
 				{
 					"command": "cblite.newQueryN1ql",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
@@ -204,6 +211,11 @@
 					"command": "cblite.newQueryJson",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
 					"group": "2_query@2"
+				},
+				{
+					"command": "cblite.explorer.lookupDocument",
+					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
+					"group": "2_query@3"
 				},
 				{
 					"command": "cblite.explorer.copyPath",
@@ -225,6 +237,11 @@
                     "command": "cblite.explorer.copyKey",
                     "when": "view == cblite.explorer && viewItem == cblite.documentItem",
                     "group": "3_copy@1"
+				},
+				{
+					"command": "cblite.explorer.getDocument",
+					"when": "view == cblite.explorer && viewItem == cblite.documentItem",
+					"group": "4_utils@1"
 				},
 				{
                     "command": "cblite.explorer.copyKey",

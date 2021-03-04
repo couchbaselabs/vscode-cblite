@@ -22,11 +22,12 @@ export class DatabaseStatusBarItem implements Disposable {
     }
 
     update() {
-        let doc = window.activeTextEditor && (window.activeTextEditor.document.languageId === 'n1ql' || window.activeTextEditor.document.languageId === 'json') ?
+        let doc = window.activeTextEditor && 
+            (window.activeTextEditor.document.languageId === 'n1ql' || window.activeTextEditor.document.languageId === 'json') ?
             window.activeTextEditor.document : undefined;
 
         if(doc) {
-            let db = this.documentDatabase.get(doc);
+            let db = this.documentDatabase.getDatabase(doc);
             let dbPath: string;
             let dbName: string;
             if(db) {
@@ -39,6 +40,13 @@ export class DatabaseStatusBarItem implements Disposable {
 
             this.statusBarItem.tooltip = `cblite: ${dbPath}`;
             this.statusBarItem.text = `cblite: ${dbName}`;
+            
+            let docID = this.documentDatabase.getDocumentID(doc);
+            if(docID) {
+                this.statusBarItem.tooltip += ` | ${docID}`;
+                this.statusBarItem.text += ` | ${docID}`;
+            }
+
             this.statusBarItem.show();
         } else {
             this.statusBarItem.hide();

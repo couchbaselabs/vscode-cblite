@@ -20,7 +20,16 @@ class CbliteWorkspace implements Disposable {
     }
 
     bindDatabaseToDocument(databasePath: string, cbliteDocument: TextDocument): boolean {
-        let success = this.documentDatabaseBindings.bind(cbliteDocument, databasePath);
+        let success = this.documentDatabaseBindings.bindDatabase(cbliteDocument, databasePath);
+        if(success) {
+            this.databaseStatusBarItem.update();
+        }
+
+        return success;
+    }
+
+    bindDocIDToDocument(docID: string, cbliteDocument: TextDocument): boolean {
+        let success = this.documentDatabaseBindings.bindDocumentID(cbliteDocument, docID);
         if(success) {
             this.databaseStatusBarItem.update();
         }
@@ -29,7 +38,13 @@ class CbliteWorkspace implements Disposable {
     }
 
     getDocumentDatabase(cbliteDocument: TextDocument): string | undefined {
-        return this.documentDatabaseBindings.get(cbliteDocument);
+        let retVal = this.documentDatabaseBindings.getDatabase(cbliteDocument);
+        return retVal === "" ? undefined : retVal;
+    }
+
+    getDocumentDocID(cbliteDocument: TextDocument): string | undefined {
+        let retVal = this.documentDatabaseBindings.getDocumentID(cbliteDocument);
+        return retVal === "" ? undefined : retVal;
     }
 
     dispose() {

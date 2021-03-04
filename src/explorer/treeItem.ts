@@ -1,5 +1,8 @@
+//import { Schema } from "inspector";
+import { Schema } from "../common/index"
 import { basename } from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { ExplorerTreeProvider } from "./explorerTreeProvider";
 
 export interface N1QLTree {
     [dbPath: string]: DBItem;
@@ -75,5 +78,31 @@ export class KeyItem extends N1QLItem {
     // @ts-ignore
     get tooltip(): string {
         return this.name;
+    }
+}
+
+export class ShowMoreItem extends TreeItem {
+    static readonly BATCH_SIZE = 50;
+
+    readonly parent: Schema.Database;
+    readonly tree: ExplorerTreeProvider;
+    
+    constructor(parent: Schema.Database, tree: ExplorerTreeProvider) {
+        super("Show More...", TreeItemCollapsibleState.None)
+
+        this.parent = parent;
+        this.tree = tree;
+        this.contextValue = "cblite.showMoreItem";
+        this.command = {title: "", command: "cblite.explorer.showMoreItems", arguments: [this] };
+    }
+
+    showMore() {
+        this.parent.limit += ShowMoreItem.BATCH_SIZE;
+        this.tree.refresh();
+    }
+
+    // @ts-ignore
+    get tooltip(): string {
+        return "Show More...";
     }
 }

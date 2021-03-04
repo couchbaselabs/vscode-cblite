@@ -1,7 +1,7 @@
 import { commands, ExtensionContext, languages, Position, TextDocument, Uri, window, workspace } from "vscode";
-import { getEditorQueryDocument, pickWorkspaceDatabase, pickListDatabase, showErrorMessage, createQueryDocument } from "./vscodewrapper";
+import { getEditorQueryDocument as getEditorDocument, pickWorkspaceDatabase, pickListDatabase, showErrorMessage, createQueryDocument, createDocContentDocument } from "./vscodewrapper";
 import CbliteWorkspace from "./cbliteworkspace";
-import { executeQuery, schema } from "./cblite/cblite";
+import { executeCommand, executeQuery, schema } from "./cblite/cblite";
 import { Configuration, getConfiguration } from "./configuration";
 import { logger } from "./logging/logger";
 import { Constants } from "./constants/constants";
@@ -10,6 +10,7 @@ import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
 import { Schema } from "./common";
 import { N1QLProvider } from "./providers/n1ql.provider"
+import { ShowMoreItem } from "./explorer/treeItem";
 
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
@@ -22,10 +23,15 @@ export namespace Commands {
 	export const explorerCopyKey: string = 'cblite.explorer.copyKey';
 	export const explorerCopyValue: string = 'cblite.explorer.copyValue';
     export const explorerCopyPath: string = 'cblite.explorer.copyPath';
+	export const lookupDocument: string = 'cblite.explorer.lookupDocument';
     export const explorerCopyRelativePath: string = 'cblite.explorer.copyRelativePath';
+	export const explorerGetDocument: string = 'cblite.explorer.getDocument';
+	export const explorerShowMoreItems: string = 'cblite.explorer.showMoreItems';
     export const newQueryN1ql: string = 'cblite.newQueryN1ql';
     export const newQueryJson: string = 'cblite.newQueryJson';
     export const quickQuery: string = 'cblite.quickQuery';
+	export const createDocument: string = 'cblite.createDocument';
+	export const updateDocument: string = 'cblite.updateDocument';
 }
 
 let cbliteCommand: string;
@@ -102,6 +108,15 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return copyToClipboard(path);
     }));
 
+	context.subscriptions.push(commands.registerCommand(Commands.lookupDocument, async (item: {path: string}) => {
+		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
+		if(!newDocID) {
+			return;
+		}
+
+		return await getDocument(item.path, newDocID);
+	}));
+
 	context.subscriptions.push(commands.registerCommand(Commands.useDatabase, () => {
         return useDatabase();
 	}));
@@ -128,6 +143,24 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return newQuery(dbPath, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
 	}));
 
+	context.subscriptions.push(commands.registerCommand(Commands.createDocument, () => {
+		return saveDocument(false);
+	}));
+
+	context.subscriptions.push(commands.registerCommand(Commands.updateDocument, () => {
+		return saveDocument(true);
+	}));
+	
+	context.subscriptions.push(commands.registerCommand(Commands.explorerGetDocument, (doc: Schema.Document) => {
+		let dbPath = doc.parent.path;
+		let docId = doc.id;
+		return getDocument(dbPath, docId);
+	}));
+
+	context.subscriptions.push(commands.registerCommand(Commands.explorerShowMoreItems, (item: ShowMoreItem) => {
+		item.showMore();
+	}));
+
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
 	languages.registerCompletionItemProvider("n1ql", N1QLProvider, ...characters);
 
@@ -137,7 +170,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 }
 
 function useDatabase(): Thenable<string> {
-	let queryDocument = getEditorQueryDocument();
+	let queryDocument = getEditorDocument();
 	return pickWorkspaceDatabase(false).then(dbPath => {
 		if(queryDocument && dbPath) {
 			cbliteWorkspace.bindDatabaseToDocument(dbPath, queryDocument);
@@ -145,6 +178,65 @@ function useDatabase(): Thenable<string> {
 
 		return Promise.resolve(dbPath);
 	});
+}
+
+async function getDocument(dbPath: string, docId: string): Promise<TextDocument|undefined> {
+	let result = await executeCommand(cbliteCommand, ["cat", dbPath, docId]);
+	if(result.error) {
+		showErrorMessage(`Error getting document: ${result.error.message}`, {title: "Show output", command: Commands.showOutputChannel});
+		return undefined;
+	}
+
+	let regExp = / *"_id"\s*:\s*"[^"]+",?\r?\n?/;
+	let strippedResult = result.results!.replace(regExp, "");
+
+	let contentDoc = await createDocContentDocument(strippedResult);
+	cbliteWorkspace.bindDatabaseToDocument(dbPath, contentDoc);
+	cbliteWorkspace.bindDocIDToDocument(docId, contentDoc);
+	return contentDoc;
+}
+
+async function saveDocument(update: boolean) {
+	let vscodeDoc = getEditorDocument();
+	if(!vscodeDoc) {
+		return;
+	}
+
+	let dbPath = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+	if(!dbPath) {
+		await useDatabase();
+		dbPath = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+		if(!dbPath) {
+			return;
+		}
+	}
+	let docID: string;
+	if(update) {
+		let tmp = cbliteWorkspace.getDocumentDocID(vscodeDoc);
+		if(!tmp) {
+			showErrorMessage("Cannot update this document, it has not been saved yet");
+			return;
+		}
+
+		docID = tmp;
+	} else {
+		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
+		if(!newDocID) {
+			return;
+		}
+
+		cbliteWorkspace.bindDocIDToDocument(newDocID, vscodeDoc);
+		docID = newDocID;
+	}
+
+	let flag = update ? "--update" : "--create";
+	let flatText = vscodeDoc.getText().replace(/\s/g, "").replace("'", "\\'");
+	let result = await executeCommand(cbliteCommand, ["put", flag, dbPath, docID, flatText]);
+	if(result.error) {
+		showErrorMessage(`Failed to save document: ${result.error.message}`, {title: "Show output", command: Commands.showOutputChannel});
+	} else {
+		window.setStatusBarMessage(`Save completed!`, 2000);
+	}
 }
 
 function explorerAdd(dbPath?: string): Thenable<void> {
@@ -194,7 +286,7 @@ async function newQuery(dbPath?: string, content: string = "", cursorPos: Positi
 }
 
 async function runDocumentQuery() {
-	let queryDocument = getEditorQueryDocument();
+	let queryDocument = getEditorDocument();
 	if(queryDocument) {
 		let dbPath = cbliteWorkspace.getDocumentDatabase(queryDocument);
 		if(dbPath) {

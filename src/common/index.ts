@@ -1,19 +1,26 @@
 import { executeCommand } from "../cblite/cblite";
+import { ShowMoreItem } from "../explorer/treeItem";
 import { isDirectorySync } from "../utils/files";
 
 export type Schema = Schema.Database;
 
 export namespace Schema {
-    export type Item = Database | Document | Key | Value;
+    export type Item = Database | Document | Key | Value | ShowMore;
+
+    export interface ShowMore {
+        parent: Database
+    }
 
     export interface Database {
         path: string,
         documents: Schema.Document[];
+        limit: number;
     }
 
     export interface Document {
         id: string,
         keys: Schema.Key[],
+        parent: Database
     }
 
     export interface Key {
@@ -42,7 +49,8 @@ export namespace Schema {
 
             let schema = {
                 path: dbPath,
-                documents: []
+                documents: [],
+                limit: ShowMoreItem.BATCH_SIZE
             } as Database;
 
             if(allDocs.results === "(No documents)") {
@@ -53,7 +61,8 @@ export namespace Schema {
             allDocsBody.forEach(b => {
                 let doc: Document = {
                     id: b["_id"],
-                    keys: []
+                    keys: [],
+                    parent: schema
                 };
 
                 for(let key in b) {
@@ -84,7 +93,7 @@ export namespace Schema {
             });
 
             collection.push(c);
-        } else if(item.constructor == Object) {
+        } else if(item?.constructor == Object) {
             let c: Key = {
                 name: key!,
                 dict: [],
