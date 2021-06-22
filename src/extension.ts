@@ -67,7 +67,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerAdd, (dbUri?: Uri) => {
 		let dbPath = dbUri? dbUri.fsPath : undefined;
-        return explorerAdd(dbPath);
+        return explorerAdd(false, dbPath);
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerRemove, (item?: {path: string}) => {
@@ -239,18 +239,27 @@ async function saveDocument(update: boolean) {
 	}
 }
 
-function explorerAdd(dbPath?: string): Thenable<void> {
+function explorerAdd(upgrade: boolean, dbPath?: string): Thenable<void> {
 	if(dbPath) {
-		return schema(cbliteCommand, dbPath).then(schema => {
+		return schema(cbliteCommand, dbPath, upgrade).then(schema => {
 			return explorer.add(schema);
 		}, err =>  {
 			let message = `Failed to open database: ${err.message}`;
-			showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
+			if(parseInt(err.message.substring(err.message.length - 5, err.message.length - 4)) == 1
+			&& parseInt(err.message.substring(err.message.length - 3, err.message.length - 1)) == 30) {
+				showErrorMessage(`Failed to open database: Error: The database needs to be upgraded to be opened by this version of LiteCore. 
+								**This will likely make it unreadable by earlier versions.**`, 
+								{title: "Show output", command: Commands.showOutputChannel},
+								{title: "Upgrade", command: Commands.updateDocument});
+			return explorerAdd(true, dbPath);
+			} else {
+				showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
+			}
 		});
 	} else {
 		return pickWorkspaceDatabase(false).then(dbPath => {
 			if(dbPath) {
-				return explorerAdd(dbPath);
+				return explorerAdd(upgrade, dbPath);
 			}
 		}, err => {
 			// No database selected

@@ -1,4 +1,4 @@
-import { executeCommand } from "../cblite/cblite";
+import { executeCommand, QueryResult } from "../cblite/cblite";
 import { ShowMoreItem } from "../explorer/treeItem";
 import { isDirectorySync } from "../utils/files";
 
@@ -36,13 +36,18 @@ export namespace Schema {
         value: any
     }
 
-    export function build(dbPath: string, cblite: string): Promise<Schema.Database> {
+    export function build(dbPath: string, cblite: string, upgrade: boolean): Promise<Schema.Database> {
         return new Promise(async (resolve, reject) => {
             if(!isDirectorySync(dbPath)) {
                 return reject(`Failed to retrieve database schema: '${dbPath}' is not a cblite2 folder.`);
             }       
 
-            var allDocs = await executeCommand(cblite, ["ls", "--raw", dbPath]);
+            var allDocs: QueryResult;
+            if(upgrade) {
+                allDocs = await executeCommand(cblite, ["--upgrade", "ls", "--raw", dbPath]);
+            } else {
+                allDocs = await executeCommand(cblite, ["ls", "--raw", dbPath]);
+            }
             if(allDocs.error) {
                 return reject(allDocs.error);
             }

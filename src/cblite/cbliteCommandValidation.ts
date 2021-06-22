@@ -32,7 +32,7 @@ export function isCbliteCommandValid(cbliteCommand: string): boolean {
         return false;
     }
 
-    let match = output.match(/Couchbase Lite Core \d\.\d\.\d \(\S+\)/);
+    let match = output.match(/Couchbase Lite Core \d\.\d\.\d(-EE)? \(\S+\)/);
     if(!match) {
         logger.debug(`${cbliteCommand} resulted in unknown version output`);
     }

@@ -32,10 +32,10 @@ export function executeCommand(cbliteCommand: string, cliArgs: string[]): Promis
     });   
 }
 
-export function schema(cbliteCommand: string, dbPath: string): Promise<Schema.Database> {
+export function schema(cbliteCommand: string, dbPath: string, upgrade: boolean): Promise<Schema.Database> {
     if(!cbliteCommand) {
         return Promise.reject("Invalid cblite command, please set the value of the cblite.cblite setting");
     }
 
-    return Promise.resolve(Schema.build(dbPath, cbliteCommand));
+    return Promise.resolve(Schema.build(dbPath, cbliteCommand, upgrade));
 }
