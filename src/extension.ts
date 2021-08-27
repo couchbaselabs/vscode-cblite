@@ -32,6 +32,9 @@ export namespace Commands {
     export const quickQuery: string = 'cblite.quickQuery';
 	export const createDocument: string = 'cblite.createDocument';
 	export const updateDocument: string = 'cblite.updateDocument';
+
+	//Internal
+	export const explorerUpgrade_: string = 'cblite.internal.explorer.upgrade';
 }
 
 let cbliteCommand: string;
@@ -161,6 +164,10 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 		item.showMore();
 	}));
 
+	context.subscriptions.push(commands.registerCommand(Commands.explorerUpgrade_, (dbPath: string) => {
+        return explorerAdd(true, dbPath);
+	}));
+
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
 	languages.registerCompletionItemProvider("n1ql", N1QLProvider, ...characters);
 
@@ -250,8 +257,7 @@ function explorerAdd(upgrade: boolean, dbPath?: string): Thenable<void> {
 				showErrorMessage(`Failed to open database: Error: The database needs to be upgraded to be opened by this version of LiteCore. 
 								**This will likely make it unreadable by earlier versions.**`, 
 								{title: "Show output", command: Commands.showOutputChannel},
-								{title: "Upgrade", command: Commands.updateDocument});
-			return explorerAdd(true, dbPath);
+								{title: "Upgrade", command: Commands.explorerUpgrade_, args: [dbPath]});
 			} else {
 				showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
 			}

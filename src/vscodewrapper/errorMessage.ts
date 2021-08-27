@@ -11,7 +11,11 @@ export function showErrorMessage(message: string, ...actions: ErrorMessageAction
     window.showErrorMessage(message, ...items).then(item => {
         actions.forEach(action => {
             if(action.title === item) {
-                commands.executeCommand(action.command, action.args);
+                if(action.args != null) {
+                    commands.executeCommand(action.command, ...action.args)
+                } else {
+                    commands.executeCommand(action.command)
+                }
             }
         });
     });
