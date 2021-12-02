@@ -1,24 +1,23 @@
 import { DocumentDatabaseBindings } from "./documentDatabaseBindings";
 import { StatusBarItem, window, StatusBarAlignment, Disposable, workspace } from "vscode";
-import { basename } from "path";
 
 export class DatabaseStatusBarItem implements Disposable {
-    private disposable: Disposable;
-    private statusBarItem: StatusBarItem;
+    private _disposable: Disposable;
+    private _statusBarItem: StatusBarItem;
 
     constructor(private documentDatabase: DocumentDatabaseBindings) {
         let subscriptions: Disposable[] = [];
 
-        this.statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-        this.statusBarItem.command = "cblite.useDatabase";
-        subscriptions.push(this.statusBarItem);
+        this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+        this._statusBarItem.command = "cblite.useDatabase";
+        subscriptions.push(this._statusBarItem);
 
         subscriptions.push(window.onDidChangeActiveTextEditor(e => this.update()));
         subscriptions.push(window.onDidChangeTextEditorViewColumn(e => this.update()));
         subscriptions.push(workspace.onDidOpenTextDocument(e => this.update()));
         subscriptions.push(workspace.onDidCloseTextDocument(e => this.update()));
 
-        this.disposable = Disposable.from(...subscriptions);
+        this._disposable = Disposable.from(...subscriptions);
     }
 
     update() {
@@ -31,29 +30,29 @@ export class DatabaseStatusBarItem implements Disposable {
             let dbPath: string;
             let dbName: string;
             if(db) {
-                dbPath = db;
-                dbName = basename(dbPath);
+                dbPath = db.path;
+                dbName = db.name;
             } else {
                 dbPath = "No database";
                 dbName = dbPath;
             }
 
-            this.statusBarItem.tooltip = `cblite: ${dbPath}`;
-            this.statusBarItem.text = `cblite: ${dbName}`;
+            this._statusBarItem.tooltip = `cblite: ${dbPath}`;
+            this._statusBarItem.text = `cblite: ${dbName}`;
             
-            let docID = this.documentDatabase.getDocumentID(doc);
-            if(docID) {
-                this.statusBarItem.tooltip += ` | ${docID}`;
-                this.statusBarItem.text += ` | ${docID}`;
+            let cblDoc = this.documentDatabase.getDocument(doc);
+            if(cblDoc) {
+                this._statusBarItem.tooltip += ` | ${cblDoc.id}`;
+                this._statusBarItem.text += ` | ${cblDoc.id}`;
             }
 
-            this.statusBarItem.show();
+            this._statusBarItem.show();
         } else {
-            this.statusBarItem.hide();
+            this._statusBarItem.hide();
         }
     }
 
     dispose() {
-        this.disposable.dispose();
+        this._disposable.dispose();
     }
 }

@@ -75,7 +75,7 @@ export function pickWorkspaceDatabase(autopick: boolean, hint?: string): Thenabl
 export function pickListDatabase(autopick: boolean, dbs: string[]): Thenable<string> {
     let items: QuickPick.DatabaseItem[] | QuickPick.ErrorItem[];
     if(dbs.length === 0) {
-        items = []
+        items = [];
     } else {
         items = dbs.map(dbPath => new QuickPick.DatabaseItem(dbPath));
     }
@@ -142,7 +142,7 @@ function findDatabases(location: string) : string[] {
                 results.push(fullPath);
             }
 
-            results = results.concat(findDatabases(fullPath))
+            results = results.concat(findDatabases(fullPath));
         }
     });
 

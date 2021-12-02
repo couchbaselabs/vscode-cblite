@@ -1,7 +1,7 @@
 //import { Schema } from "inspector";
-import { Schema } from "../common/index"
 import { basename } from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { SchemaDatabase } from "../common";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
 
 export interface N1QLTree {
@@ -82,13 +82,13 @@ export class KeyItem extends N1QLItem {
 }
 
 export class ShowMoreItem extends TreeItem {
-    static readonly BATCH_SIZE = 50;
+    static readonly batchSize = 50;
 
-    readonly parent: Schema.Database;
+    readonly parent: SchemaDatabase;
     readonly tree: ExplorerTreeProvider;
     
-    constructor(parent: Schema.Database, tree: ExplorerTreeProvider) {
-        super("Show More...", TreeItemCollapsibleState.None)
+    constructor(parent: SchemaDatabase, tree: ExplorerTreeProvider) {
+        super("Show More...", TreeItemCollapsibleState.None);
 
         this.parent = parent;
         this.tree = tree;
@@ -97,7 +97,7 @@ export class ShowMoreItem extends TreeItem {
     }
 
     showMore() {
-        this.parent.limit += ShowMoreItem.BATCH_SIZE;
+        this.parent.limit += ShowMoreItem.batchSize;
         this.tree.refresh();
     }
 

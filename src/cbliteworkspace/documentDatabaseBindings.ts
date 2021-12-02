@@ -1,8 +1,9 @@
 import { TextDocument } from "vscode";
+import { Database, MutableDocument } from "../native/binding";
 
 class DocumentCBLiteInfo {
-    databaseName?: string;
-    documentName?: string;
+    db?: Database;
+    doc?: MutableDocument;
 }
 
 interface Bindings {
@@ -16,66 +17,66 @@ export class DocumentDatabaseBindings {
         this.bindings = {};
     }
 
-    bindDatabase(document: TextDocument | undefined, dbPath: string): boolean {
+    bindDatabase(document: TextDocument | undefined, dbObj: Database): boolean {
         if(document) {
             let key = document.uri.toString();
             if(!(key in this.bindings)) {
                 this.bindings[key] = new DocumentCBLiteInfo();
             }
 
-            this.bindings[document.uri.toString()].databaseName = dbPath;
+            this.bindings[document.uri.toString()].db = dbObj;
             return true;
         }
 
         return false;
     }
 
-    bindDocumentID(document: TextDocument | undefined, id: string): boolean {
+    bindDocument(document: TextDocument | undefined, cblDocument: MutableDocument): boolean {
         if(document) {
             let key = document.uri.toString();
             if(!(key in this.bindings)) {
                 this.bindings[key] = new DocumentCBLiteInfo();
             }
 
-            this.bindings[document.uri.toString()].documentName = id;
+            this.bindings[document.uri.toString()].doc = cblDocument;
             return true;
         }
 
         return false;
     }
 
-    getDatabase(document: TextDocument | undefined): string | undefined {
+    getDatabase(document: TextDocument | undefined): Database | undefined {
         if(document) {
-            return this.bindings[document.uri.toString()]?.databaseName;
+            return this.bindings[document.uri.toString()]?.db;
         }
 
         return undefined;
     }
 
-    getDocumentID(document: TextDocument | undefined): string | undefined {
+    getDocument(document: TextDocument | undefined): MutableDocument | undefined {
         if(document) {
-            return this.bindings[document.uri.toString()]?.documentName;
+            return this.bindings[document.uri.toString()]?.doc;
         }
 
         return undefined;
     }
 
-    unbindDatabase(dbPath: string) {
+    unbindDatabase(dbObj: Database) {
         Object.keys(this.bindings).forEach((docId) => {
-            if(this.bindings[docId].databaseName === dbPath) {
-                this.bindings[docId].databaseName = undefined;
-                if(!this.bindings[docId].documentName) {
+            if(this.bindings[docId].db === dbObj) {
+                this.bindings[docId].db = undefined;
+                if(!this.bindings[docId].doc) {
                     delete this.bindings[docId];
                 }
             }
         });
     }
 
-    unbindDocumentID(docId: string) {
+    unbindDocument(doc: MutableDocument) {
         Object.keys(this.bindings).forEach((docId) => {
-            if(this.bindings[docId].documentName === docId) {
-                this.bindings[docId].documentName = undefined;
-                if(!this.bindings[docId].databaseName) {
+            if(this.bindings[docId].doc === doc) {
+                this.bindings[docId].doc = undefined;
+                if(!this.bindings[docId].db) {
                     delete this.bindings[docId];
                 }
             }

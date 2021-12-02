@@ -16,6 +16,19 @@
                 "${workspaceFolder}/dist/**/*.js*"
             ],
             "preLaunchTask": "npm: compile"
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch Node Test",
+            "args": [
+                "--napi-modules",
+                "${workspaceFolder}/standalone_test/test.js"
+            ],
+            "preLaunchTask": "npm: compile",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

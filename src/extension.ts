@@ -1,16 +1,16 @@
 import { commands, ExtensionContext, languages, Position, TextDocument, Uri, window, workspace } from "vscode";
-import { getEditorQueryDocument as getEditorDocument, pickWorkspaceDatabase, pickListDatabase, showErrorMessage, createQueryDocument, createDocContentDocument } from "./vscodewrapper";
+import { getEditorQueryDocument as getEditorDocument, pickWorkspaceDatabase, showErrorMessage, createQueryDocument, createDocContentDocument } from "./vscodewrapper";
 import CbliteWorkspace from "./cbliteworkspace";
-import { executeCommand, executeQuery, schema } from "./cblite/cblite";
 import { Configuration, getConfiguration } from "./configuration";
 import { logger } from "./logging/logger";
 import { Constants } from "./constants/constants";
-import { validateCbliteCommand } from "./cblite/cbliteCommandValidation";
 import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
-import { Schema } from "./common";
-import { N1QLProvider } from "./providers/n1ql.provider"
+import { N1QLProvider } from "./providers/n1ql.provider";
 import { ShowMoreItem } from "./explorer/treeItem";
+import { buildSchema, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
+import { Database, DatabaseConfiguration, MutableDocument, QueryLanguage } from "./native/binding";
+import { basename, dirname } from "path";
 
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
@@ -34,10 +34,9 @@ export namespace Commands {
 	export const updateDocument: string = 'cblite.updateDocument';
 
 	//Internal
-	export const explorerUpgrade_: string = 'cblite.internal.explorer.upgrade';
+	export const explorerUpgrade: string = 'cblite.internal.explorer.upgrade';
 }
 
-let cbliteCommand: string;
 let configuration: Configuration;
 let cbliteWorkspace: CbliteWorkspace;
 let explorer: Explorer;
@@ -49,12 +48,10 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	configuration = getConfiguration();
 	logger.setLogLevel(configuration.logLevel);
-	setCbliteCommand(configuration.cblite, context.extensionPath);
 
 	context.subscriptions.push(workspace.onDidChangeConfiguration(() => {
 		configuration = getConfiguration();
 		logger.setLogLevel(configuration.logLevel);
-		setCbliteCommand(configuration.cblite, context.extensionPath);
 	}));
 
 	cbliteWorkspace = new CbliteWorkspace();
@@ -73,8 +70,8 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return explorerAdd(false, dbPath);
 	}));
 
-	context.subscriptions.push(commands.registerCommand(Commands.explorerRemove, (item?: {path: string}) => {
-		let dbPath = item?.path;
+	context.subscriptions.push(commands.registerCommand(Commands.explorerRemove, (item?: {obj: Database}) => {
+		let dbPath = item?.obj;
 		return explorerRemove(dbPath);
 	}));
 
@@ -82,7 +79,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 	// 	explorerRefresh();
 	// }));
 
-	context.subscriptions.push(commands.registerCommand(Commands.explorerCopyKey, (item: Schema.Item) => {
+	context.subscriptions.push(commands.registerCommand(Commands.explorerCopyKey, (item: SchemaItem) => {
 		let path = buildPath(item);
 		if(path) {
 			return copyToClipboard(path);
@@ -92,7 +89,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 		return Promise.resolve();
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.explorerCopyValue, (item: Schema.Item) => {
+	context.subscriptions.push(commands.registerCommand(Commands.explorerCopyValue, (item: SchemaItem) => {
 		if('value' in item) {
 			return copyToClipboard(item.value.toString());
 		}
@@ -111,39 +108,25 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return copyToClipboard(path);
     }));
 
-	context.subscriptions.push(commands.registerCommand(Commands.lookupDocument, async (item: {path: string}) => {
+	context.subscriptions.push(commands.registerCommand(Commands.lookupDocument, async (item: {obj: Database}) => {
 		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
 		if(!newDocID) {
 			return;
 		}
 
-		return await getDocument(item.path, newDocID);
+		return await getDocument(item.obj, newDocID);
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.useDatabase, () => {
         return useDatabase();
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.newQueryN1ql, (db?: Uri|Schema.Database) => {
-        let dbPath: string | undefined;
-		if(db instanceof Uri) {
-			dbPath = db.fsPath;
-		} else {
-			dbPath = db?.path;
-		}
-
-        return newQuery(dbPath, "select _id limit 100");
+	context.subscriptions.push(commands.registerCommand(Commands.newQueryN1ql, (db?: SchemaDatabase) => {
+        return newQuery(db?.obj, "select meta().id from _ limit 100");
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.newQueryJson, (db?: Uri|Schema.Database) => {
-		let dbPath: string | undefined;
-		if(db instanceof Uri) {
-			dbPath = db.fsPath;
-		} else {
-			dbPath = db?.path;
-		}
-
-        return newQuery(dbPath, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
+	context.subscriptions.push(commands.registerCommand(Commands.newQueryJson, (db?: SchemaDatabase) => {
+        return newQuery(db?.obj, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.createDocument, () => {
@@ -154,17 +137,16 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 		return saveDocument(true);
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.explorerGetDocument, (doc: Schema.Document) => {
-		let dbPath = doc.parent.path;
+	context.subscriptions.push(commands.registerCommand(Commands.explorerGetDocument, (doc: SchemaDocument) => {
 		let docId = doc.id;
-		return getDocument(dbPath, docId);
+		return getDocument(doc.parent.obj, docId);
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerShowMoreItems, (item: ShowMoreItem) => {
 		item.showMore();
 	}));
 
-	context.subscriptions.push(commands.registerCommand(Commands.explorerUpgrade_, (dbPath: string) => {
+	context.subscriptions.push(commands.registerCommand(Commands.explorerUpgrade, (dbPath: string) => {
         return explorerAdd(true, dbPath);
 	}));
 
@@ -180,26 +162,22 @@ function useDatabase(): Thenable<string> {
 	let queryDocument = getEditorDocument();
 	return pickWorkspaceDatabase(false).then(dbPath => {
 		if(queryDocument && dbPath) {
-			cbliteWorkspace.bindDatabaseToDocument(dbPath, queryDocument);
+			let config = new DatabaseConfiguration();
+			config.directory = dirname(dbPath);
+			let db = new Database(basename(dbPath).split(".")[0]);
+			cbliteWorkspace.bindDatabaseToDocument(db, queryDocument);
 		}
 
 		return Promise.resolve(dbPath);
 	});
 }
 
-async function getDocument(dbPath: string, docId: string): Promise<TextDocument|undefined> {
-	let result = await executeCommand(cbliteCommand, ["cat", dbPath, docId]);
-	if(result.error) {
-		showErrorMessage(`Error getting document: ${result.error.message}`, {title: "Show output", command: Commands.showOutputChannel});
-		return undefined;
-	}
+async function getDocument(dbObj: Database, docId: string): Promise<TextDocument|undefined> {
+	let doc = dbObj.getMutableDocument(docId);
 
-	let regExp = / *"_id"\s*:\s*"[^"]+",?\r?\n?/;
-	let strippedResult = result.results!.replace(regExp, "");
-
-	let contentDoc = await createDocContentDocument(strippedResult);
-	cbliteWorkspace.bindDatabaseToDocument(dbPath, contentDoc);
-	cbliteWorkspace.bindDocIDToDocument(docId, contentDoc);
+	let contentDoc = await createDocContentDocument(doc.propertiesAsJSON());
+	cbliteWorkspace.bindDatabaseToDocument(dbObj, contentDoc);
+	cbliteWorkspace.bindDocToDocument(doc, contentDoc);
 	return contentDoc;
 }
 
@@ -209,55 +187,56 @@ async function saveDocument(update: boolean) {
 		return;
 	}
 
-	let dbPath = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
-	if(!dbPath) {
+	let db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+	if(!db) {
 		await useDatabase();
-		dbPath = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
-		if(!dbPath) {
+		db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+		if(!db) {
 			return;
 		}
 	}
-	let docID: string;
+	let doc: MutableDocument;
 	if(update) {
-		let tmp = cbliteWorkspace.getDocumentDocID(vscodeDoc);
+		let tmp = cbliteWorkspace.getDocumentDoc(vscodeDoc);
 		if(!tmp) {
 			showErrorMessage("Cannot update this document, it has not been saved yet");
 			return;
 		}
 
-		docID = tmp;
+		doc = tmp;
 	} else {
 		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
 		if(!newDocID) {
 			return;
 		}
 
-		cbliteWorkspace.bindDocIDToDocument(newDocID, vscodeDoc);
-		docID = newDocID;
+		let tmp = new MutableDocument(newDocID);
+		cbliteWorkspace.bindDocToDocument(tmp, vscodeDoc);
+		doc = tmp;
 	}
 
-	let flag = update ? "--update" : "--create";
-	let flatText = vscodeDoc.getText().replace(/\s/g, "").replace("'", "\\'");
-	let result = await executeCommand(cbliteCommand, ["put", flag, dbPath, docID, flatText]);
-	if(result.error) {
-		showErrorMessage(`Failed to save document: ${result.error.message}`, {title: "Show output", command: Commands.showOutputChannel});
-	} else {
-		window.setStatusBarMessage(`Save completed!`, 2000);
+	try {
+		db.saveDocument(doc);
+	} catch(err: any) {
+		showErrorMessage(`Failed to save document: ${err.message}`, {title: "Show output", command: Commands.showOutputChannel});
+		return;
 	}
+
+	window.setStatusBarMessage(`Save completed!`, 2000);
 }
 
 function explorerAdd(upgrade: boolean, dbPath?: string): Thenable<void> {
 	if(dbPath) {
-		return schema(cbliteCommand, dbPath, upgrade).then(schema => {
+		return buildSchema(dbPath, upgrade).then(schema => {
 			return explorer.add(schema);
 		}, err =>  {
 			let message = `Failed to open database: ${err.message}`;
-			if(parseInt(err.message.substring(err.message.length - 5, err.message.length - 4)) == 1
-			&& parseInt(err.message.substring(err.message.length - 3, err.message.length - 1)) == 30) {
+			if(parseInt(err.message.substring(err.message.length - 5, err.message.length - 4)) === 1
+			&& parseInt(err.message.substring(err.message.length - 3, err.message.length - 1)) === 30) {
 				showErrorMessage(`Failed to open database: Error: The database needs to be upgraded to be opened by this version of LiteCore. 
 								**This will likely make it unreadable by earlier versions.**`, 
 								{title: "Show output", command: Commands.showOutputChannel},
-								{title: "Upgrade", command: Commands.explorerUpgrade_, args: [dbPath]});
+								{title: "Upgrade", command: Commands.explorerUpgrade, args: [dbPath]});
 			} else {
 				showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
 			}
@@ -273,28 +252,18 @@ function explorerAdd(upgrade: boolean, dbPath?: string): Thenable<void> {
 	}
 }
 
-function explorerRemove(dbPath?: string): Thenable<void> {
-	if(dbPath) {
-		return Promise.resolve(explorer.remove(dbPath));
+function explorerRemove(dbObj?: Database): Thenable<void> {
+	if(dbObj) {
+		return Promise.resolve(explorer.remove(dbObj));
 	}
 
-	let dbList = explorer.list().map(db => db.path);
-	return pickListDatabase(false, dbList).then(
-		dbPath => {
-			if(dbPath) {
-				explorer.remove(dbPath);
-			}
-		},
-		onrejected => {
-			// fail silently
-		}
-	)
+	return Promise.resolve();
 }
 
-async function newQuery(dbPath?: string, content: string = "", cursorPos: Position = new Position(0, 0)): Promise<TextDocument> {
+async function newQuery(dbObj?: Database, content: string = "", cursorPos: Position = new Position(0, 0)): Promise<TextDocument> {
 	var queryDoc = await createQueryDocument(content, cursorPos, true);
-	if(dbPath) {
-		cbliteWorkspace.bindDatabaseToDocument(dbPath, queryDoc);
+	if(dbObj) {
+		cbliteWorkspace.bindDatabaseToDocument(dbObj, queryDoc);
 	}
 
 	return queryDoc;
@@ -303,10 +272,10 @@ async function newQuery(dbPath?: string, content: string = "", cursorPos: Positi
 async function runDocumentQuery() {
 	let queryDocument = getEditorDocument();
 	if(queryDocument) {
-		let dbPath = cbliteWorkspace.getDocumentDatabase(queryDocument);
-		if(dbPath) {
+		let db = cbliteWorkspace.getDocumentDatabase(queryDocument);
+		if(db) {
 			let query = queryDocument.getText();
-			await runQuery(dbPath, query, true);
+			await runQuery(db, query, true);
 		} else {
 			await useDatabase();
 			await runDocumentQuery();
@@ -315,34 +284,21 @@ async function runDocumentQuery() {
 }
 
 
-async function runQuery(dbPath: string, query: string, display: boolean) {
-	let results = await executeQuery(cbliteCommand, dbPath, query, window.activeTextEditor?.document.languageId !== "json").then(({results, error}) => {
-		if(error) {
-			logger.error(`\n${error.message}`);
-			showErrorMessage(error.message, {title: "Show Output", command: Commands.showOutputChannel});
-			return undefined;
-		}
+async function runQuery(dbObj: Database, query: string, display: boolean) {
+	let language = window.activeTextEditor?.document.languageId !== "json" 
+		? QueryLanguage.N1QL
+		: QueryLanguage.JSON;
 
-		return results;
-	});
+	let queryObj = dbObj.createQuery(language, query);
+	let results = queryObj.execute();
 
 	if(!results) {
 		return;
 	}
 
 	if(display) {
-		var doc = await workspace.openTextDocument({content: results, language: "json"});
+		var doc = await workspace.openTextDocument({content: stringify(results), language: "json"});
 		await window.showTextDocument(doc, {preview: false});
-	}
-}
-
-function setCbliteCommand(command: string, extensionPath: string) {
-	try {
-		cbliteCommand = validateCbliteCommand(command, extensionPath);
-	} catch(e) {
-		logger.error(e.message);
-		showErrorMessage(e.message, {title: "Show output", command: Commands.showOutputChannel});
-		cbliteCommand = "";
 	}
 }
 
@@ -351,19 +307,19 @@ async function copyToClipboard(text: string) {
 	window.setStatusBarMessage(`Copied '${text}' to clipboard.`, 2000);
 }
 
-function buildPath(item: Schema.Item): string {
-	var current: Schema.Item|undefined = item;
+function buildPath(item: SchemaItem): string {
+	var current: SchemaItem|undefined = item;
 	let components: string[] = [];
 	while(current) {
 		if('id' in current) {
 			components.unshift(current.id);
 		} else if('name' in current) {
-			components.unshift(`["${current.name}"]`)
+			components.unshift(`["${current.name}"]`);
 		}
 
 		if('parent' in current) {
 			if('array' in current.parent) {
-				components.unshift(`[${current.parent.array!.indexOf(current as Schema.Value)}]`);
+				components.unshift(`[${current.parent.array!.indexOf(current as SchemaValue)}]`);
 			}
 
 			current = current.parent;

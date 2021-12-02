@@ -1,5 +1,9 @@
-out
-dist
-node_modules
+out/
+build/
+dist/
+node_modules/
+deps/*
+!deps/README.txt
+
 .vscode-test/
 *.vsix

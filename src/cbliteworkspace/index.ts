@@ -1,6 +1,7 @@
 import { TextDocument, Disposable } from "vscode";
 import { DocumentDatabaseBindings } from "./documentDatabaseBindings";
 import { DatabaseStatusBarItem } from "./databaseStatusBarItem";
+import { Database, MutableDocument } from "../native/binding";
 
 class CbliteWorkspace implements Disposable {
     private disposable: Disposable;
@@ -19,8 +20,8 @@ class CbliteWorkspace implements Disposable {
         this.disposable = Disposable.from(...subscriptions);
     }
 
-    bindDatabaseToDocument(databasePath: string, cbliteDocument: TextDocument): boolean {
-        let success = this.documentDatabaseBindings.bindDatabase(cbliteDocument, databasePath);
+    bindDatabaseToDocument(dbObj: Database, cbliteDocument: TextDocument): boolean {
+        let success = this.documentDatabaseBindings.bindDatabase(cbliteDocument, dbObj);
         if(success) {
             this.databaseStatusBarItem.update();
         }
@@ -28,8 +29,8 @@ class CbliteWorkspace implements Disposable {
         return success;
     }
 
-    bindDocIDToDocument(docID: string, cbliteDocument: TextDocument): boolean {
-        let success = this.documentDatabaseBindings.bindDocumentID(cbliteDocument, docID);
+    bindDocToDocument(doc: MutableDocument, cbliteDocument: TextDocument): boolean {
+        let success = this.documentDatabaseBindings.bindDocument(cbliteDocument, doc);
         if(success) {
             this.databaseStatusBarItem.update();
         }
@@ -37,14 +38,12 @@ class CbliteWorkspace implements Disposable {
         return success;
     }
 
-    getDocumentDatabase(cbliteDocument: TextDocument): string | undefined {
-        let retVal = this.documentDatabaseBindings.getDatabase(cbliteDocument);
-        return retVal === "" ? undefined : retVal;
+    getDocumentDatabase(cbliteDocument: TextDocument): Database | undefined {
+        return this.documentDatabaseBindings.getDatabase(cbliteDocument);
     }
 
-    getDocumentDocID(cbliteDocument: TextDocument): string | undefined {
-        let retVal = this.documentDatabaseBindings.getDocumentID(cbliteDocument);
-        return retVal === "" ? undefined : retVal;
+    getDocumentDoc(cbliteDocument: TextDocument): MutableDocument | undefined {
+        return this.documentDatabaseBindings.getDocument(cbliteDocument);
     }
 
     dispose() {

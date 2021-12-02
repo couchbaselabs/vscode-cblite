@@ -2,10 +2,10 @@ import { window, OutputChannel } from 'vscode';
 import { Constants } from '../constants/constants';
 
 export enum Level {
-    debug = "DEBUG",
-    info = "INFO",
-    warn = "WARN",
-    error = "ERROR"
+    DEBUG = "DEBUG",
+    INFO = "INFO",
+    WARN = "WARN",
+    ERROR = "ERROR"
 }
 
 class Logger {
@@ -13,7 +13,7 @@ class Logger {
     private outputChannel: OutputChannel;
 
     constructor() {
-        this.logLevel = Level.info;
+        this.logLevel = Level.INFO;
         this.outputChannel = window.createOutputChannel(`${Constants.outputChannelName}`);
     }
 
@@ -22,19 +22,19 @@ class Logger {
     }
 
     debug(msg: any) {
-        this.log(`${msg.toString()}`, Level.debug);
+        this.log(`${msg.toString()}`, Level.DEBUG);
     }
 
     info(msg: any) {
-        this.log(`${msg.toString()}`, Level.info);
+        this.log(`${msg.toString()}`, Level.INFO);
     }
 
     warn(msg: any) {
-        this.log(`${msg.toString()}`, Level.warn);
+        this.log(`${msg.toString()}`, Level.WARN);
     }
 
     error(msg: any) {
-        this.log(`${msg.toString()}`, Level.error);
+        this.log(`${msg.toString()}`, Level.ERROR);
     }
 
     output(msg: any) {
@@ -53,9 +53,9 @@ class Logger {
         const time = new Date().toLocaleTimeString();
         msg = `[${time}][${Constants.extensionName}][${level}] ${msg}`;
         switch(level) {
-            case Level.error: console.error(msg); break;
-            case Level.warn: console.warn(msg); break;
-            case Level.info: console.info(msg); break;
+            case Level.ERROR: console.error(msg); break;
+            case Level.WARN: console.warn(msg); break;
+            case Level.INFO: console.info(msg); break;
             default: console.log(msg); break;
         }
         // log to output channel
@@ -71,16 +71,16 @@ class Logger {
  */
 function logLevelGreaterThan(l1: Level, l2: Level) {
     switch(l2) {
-        case Level.error:
-            return (l1 === Level.error);
-        case Level.warn:
-            return (l1 === Level.warn || l1 === Level.error);
-        case Level.info:
-            return (l1 === Level.info || l1 === Level.warn || l1 === Level.error);
-        case Level.debug:
+        case Level.ERROR:
+            return (l1 === Level.ERROR);
+        case Level.WARN:
+            return (l1 === Level.WARN || l1 === Level.ERROR);
+        case Level.INFO:
+            return (l1 === Level.INFO || l1 === Level.WARN || l1 === Level.ERROR);
+        case Level.DEBUG:
             return true;
         default:
-            return (l1 === Level.info || l1 === Level.warn || l1 === Level.error);
+            return (l1 === Level.INFO || l1 === Level.WARN || l1 === Level.ERROR);
     }
 }
 

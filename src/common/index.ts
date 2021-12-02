@@ -1,123 +1,131 @@
-import { executeCommand, QueryResult } from "../cblite/cblite";
 import { ShowMoreItem } from "../explorer/treeItem";
 import { isDirectorySync } from "../utils/files";
+import { Database, DatabaseConfiguration, QueryLanguage } from "../native/binding";
+import { basename, dirname } from "path";
 
-export type Schema = Schema.Database;
+export type SchemaItem = SchemaDatabase | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
 
-export namespace Schema {
-    export type Item = Database | Document | Key | Value | ShowMore;
+export interface ShowMore {
+    parent: SchemaDatabase
+}
 
-    export interface ShowMore {
-        parent: Database
-    }
+export interface SchemaDatabase {
+    obj: Database,
+    documents: SchemaDocument[];
+    limit: number;
+}
 
-    export interface Database {
-        path: string,
-        documents: Schema.Document[];
-        limit: number;
-    }
+export interface SchemaDocument {
+    id: string,
+    keys: SchemaKey[],
+    parent: SchemaDatabase
+}
 
-    export interface Document {
-        id: string,
-        keys: Schema.Key[],
-        parent: Database
-    }
+export interface SchemaKey {
+    name: string,
+    parent: SchemaKey|SchemaDocument,
+    scalar?: SchemaValue,
+    array?: SchemaValue[],
+    dict?: SchemaKey[]
+}
 
-    export interface Key {
-        name: string,
-        parent: Key|Document,
-        scalar?: Schema.Value,
-        array?: Schema.Value[],
-        dict?: Schema.Key[]
-    }
+export interface SchemaValue {
+    parent: SchemaKey,
+    value: any
+}
 
-    export interface Value {
-        parent: Key,
-        value: any
-    }
+export type Schema = SchemaDatabase;
 
-    export function build(dbPath: string, cblite: string, upgrade: boolean): Promise<Schema.Database> {
-        return new Promise(async (resolve, reject) => {
-            if(!isDirectorySync(dbPath)) {
-                return reject(`Failed to retrieve database schema: '${dbPath}' is not a cblite2 folder.`);
-            }       
+export function buildSchema(dbPath: string, upgrade: boolean): Promise<SchemaDatabase> {
+    return new Promise(async (resolve, reject) => {
+        if(!isDirectorySync(dbPath)) {
+            return reject(`Failed to retrieve database schema: '${dbPath}' is not a cblite2 folder.`);
+        }       
 
-            var allDocs: QueryResult;
-            if(upgrade) {
-                allDocs = await executeCommand(cblite, ["--upgrade", "ls", "--raw", dbPath]);
-            } else {
-                allDocs = await executeCommand(cblite, ["ls", "--raw", dbPath]);
+        let config: DatabaseConfiguration = new DatabaseConfiguration();
+        config.directory = dirname(dbPath);
+        let filename = basename(dbPath).split(".")[0];
+        let db: Database;
+        try {
+             db = new Database(filename, config);
+        } catch(err: any) {
+            return reject("Failed to open database");
+        }
+
+        let query = db.createQuery(QueryLanguage.N1QL, "SELECT * FROM _");
+        let results = query.execute();
+
+        let schema = {
+            obj: db,
+            documents: [],
+            limit: ShowMoreItem.batchSize
+        } as SchemaDatabase;
+
+        if(results.length === 0) {
+            return resolve(schema);   
+        }
+
+        results.forEach(raw => {
+            let r = raw["_"];
+            let doc: SchemaDocument = {
+                id: r._id,
+                keys: [],
+                parent: schema
+            };
+
+            for(let key in r) {
+                recursiveBuild(doc, doc.keys, r[key], key);
             }
-            if(allDocs.error) {
-                return reject(allDocs.error);
-            }
 
-            let schema = {
-                path: dbPath,
-                documents: [],
-                limit: ShowMoreItem.BATCH_SIZE
-            } as Database;
-
-            if(allDocs.results === "(No documents)") {
-                return resolve(schema);   
-            }
-
-            let allDocsBody = allDocs.results?.split("\n").map(line => JSON.parse(line))!;
-            allDocsBody.forEach(b => {
-                let doc: Document = {
-                    id: b["_id"],
-                    keys: [],
-                    parent: schema
-                };
-
-                for(let key in b) {
-                    recursiveBuild(doc, doc.keys, b[key], key);
-                }
-
-                schema.documents.push(doc);
-            });
-            
-            return resolve(schema);
+            schema.documents.push(doc);
         });
+        
+        return resolve(schema);
+    });
+}
+
+function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item: any, key?: string): void {
+    if(key === "_id") {
+        return;
     }
 
-    function recursiveBuild(owner: Document|Key, collection: any[], item: any, key?: string): void {
-        if(key === "_id") {
-            return;
+    if(Array.isArray(item)) {
+        let c: SchemaKey = {
+            name: key!,
+            array: [],
+            parent: owner
+        };
+
+        item.forEach((val) => {
+            recursiveBuild(c, c.array!, val);
+        });
+
+        collection.push(c);
+    } else if(item?.constructor === Object) {
+        let c: SchemaKey = {
+            name: key!,
+            dict: [],
+            parent: owner
+        };
+
+        for(let k in item) {
+            recursiveBuild(c, c.dict!, item[k], k);
         }
 
-        if(Array.isArray(item)) {
-            let c: Key = {
-                name: key!,
-                array: [],
-                parent: owner
-            };
-
-            item.forEach((val) => {
-                recursiveBuild(c, c.array!, val);
-            });
-
-            collection.push(c);
-        } else if(item?.constructor == Object) {
-            let c: Key = {
-                name: key!,
-                dict: [],
-                parent: owner
-            };
-
-            for(let k in item) {
-                recursiveBuild(c, c.dict!, item[k], k);
-            }
-
-            collection.push(c);
+        collection.push(c);
+    } else {
+        if(key) {
+            let toInsert = {name: key, parent: owner} as SchemaKey;
+            toInsert.scalar = {value: item, parent: toInsert};
+            collection.push(toInsert);
         } else {
-            if(key) {
-                let toInsert = {name: key, parent: owner} as Key;
-                toInsert.scalar = {value: item, parent: toInsert};
-                collection.push(toInsert);
-            } else {
-                collection.push({value: item, parent: owner} as Value);
-            }
+            collection.push({value: item, parent: owner} as SchemaValue);
         }
     }
+}
+
+export function stringify(obj: any): string {
+    return JSON.stringify(obj, (key, value) => {
+        return typeof value === "bigint" ? value.toString() + "n" : value;
+    });
 }

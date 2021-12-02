@@ -37,7 +37,7 @@ export const N1QLProvider = {
 
 export async function resolveCompletionItem(item: vscode.CompletionItem, token: vscode.CancellationToken)
 {
-    if(item.kind == vscode.CompletionItemKind.Keyword) {
+    if(item.kind === vscode.CompletionItemKind.Keyword) {
         return item;
     }
 
