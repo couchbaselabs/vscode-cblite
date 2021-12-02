@@ -62,11 +62,11 @@ export function pickWorkspaceDatabase(autopick: boolean, hint?: string): Thenabl
                     if(fileUri) {
                         resolve(fileUri[0].fsPath);
                     } else {
-                        resolve();
+                        resolve("");
                     }
                 });
             } else {
-                resolve();
+                resolve("");
             }
         });
     });
@@ -119,7 +119,7 @@ export function showAutoQuickPick(autopick: boolean, items: QuickPickItem[] | Th
         }
 
         window.showQuickPick(items, {placeHolder: hint? hint : ''}, cancToken).then(item => {
-            resolve(item);
+            resolve(item!);
 
             if (cancTokenSource) {
                 cancTokenSource.dispose();

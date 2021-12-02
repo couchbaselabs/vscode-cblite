@@ -315,8 +315,8 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "cmake-js build -T install && webpack --mode production",
-		"compile": "cmake-js build --debug -T install && webpack --mode development",
+		"vscode:prepublish": "cmake-js compile -T install && webpack --mode production",
+		"compile": "cmake-js compile --debug -T install && tsc && webpack --mode development",
 		"lint": "eslint src --ext ts",
 		"watch": "webpack --mode development --watch",
 		"pretest": "npm run compile && npm run lint",

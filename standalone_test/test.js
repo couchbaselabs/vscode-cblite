@@ -16,7 +16,7 @@ function testEncryptionKey()
     const instance = new DatabaseConfiguration();
     assert.equal(instance.encryptionKey, undefined);
     var key = new EncryptionKey();
-    assert.strictEqual(key.algorithm, EncryptionAlgorithm.None);
+    assert.strictEqual(key.algorithm, EncryptionAlgorithm.NONE);
 
     const bytes = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
         24, 25, 26, 27, 28, 29, 30, 31]);
