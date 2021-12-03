@@ -2,7 +2,12 @@ project(cblite-js)
 cmake_minimum_required(VERSION 3.10)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_C_STANDARD 11)
-set (CMAKE_INSTALL_RPATH "\$ORIGIN")
+
+if(APPLE)
+    set (CMAKE_INSTALL_RPATH "@loader_path")
+else()
+    set (CMAKE_INSTALL_RPATH "\$ORIGIN")
+endif()
 
 ##### REMOVE LATER WHEN C++ HEADERS ARE A PART OF THE PRODUCT #####
 
@@ -100,10 +105,11 @@ install(
 
 # Install the runtime runtime files into both location (node.js and vscode extension)
 file(GLOB_RECURSE LINUX_LIBS ${CouchbaseLite_DIR}/../../../libcblite.so*)
+file(GLOB_RECURSE MAC_LIBS ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib)
 install(
     FILES 
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
-    ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib
+    ${MAC_LIBS}
     ${LINUX_LIBS}
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}
     OPTIONAL
@@ -114,7 +120,7 @@ file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/cblite-js.lib)
 install(
     FILES 
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
-    ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib
+    ${MAC_LIBS}
     ${LINUX_LIBS}
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}
     OPTIONAL
