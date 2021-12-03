@@ -10,7 +10,7 @@ This plugin relies on the Couchbase Lite for C API.  It must either be built or 
 
 ## Building
 
-Standard npm practice will build this for you.  `npm compile` will run `webpack` to create the final product *dist/extension.js* and a hashed named for the node addon cblite-js.node.  The Couchbase Lite C shared library must also be copied into this directory for the extension to function (e.g. cblite.dll).  `npm test` will run a test program located in *standalone_test/test.js*.  Note that the shared library for cblite in this case must be in *build/Release*.  
+Standard npm practice will build this for you.  `npm run compile` will run `webpack` to create the final product *dist/extension.js* and copy the node addons for each flavor.  `npm run test` will run a test program located in *standalone_test/test.js*.  Note that due to webpack limitations, all three node addons must be present in order to compile, however they don't have to be valid so a simple `touch` or `New-Item` will do the trick for local testing.  The error message should let you know where the build addons are expected, but just in case they are *out/Windows*, *out/Darwin*, and *out/Linux*.  For the current running system, the npm compile command will build the addon as part of the process.
 
 ## Extension Settings
 

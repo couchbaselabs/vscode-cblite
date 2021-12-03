@@ -1,4 +1,13 @@
-const addon = require("../../build/Release/cblite-js.node");
+let addon: any;
+const os = require("os");
+
+if(os.platform == "win32") {
+    addon = require("../../out/Windows/cblite-js.node");
+} else if(os.platform == "darwin") {
+    addon = require("../../out/Darwin/cblite-js.node");
+} else {
+    addon = require("../../out/Linux/cblite-js.node");
+}
 
 export enum EncryptionAlgorithm {
     NONE,

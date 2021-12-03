@@ -40,3 +40,26 @@ target_link_libraries(
     ${CMAKE_JS_LIB} 
     cblite
 )
+
+install(TARGETS ${PROJECT_NAME}
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME})
+
+
+# Install the runtime runtime files into both location (node.js and vscode extension)
+install(
+    FILES 
+    ${CouchbaseLite_DIR}/../../../bin/cblite.dll
+    ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib
+    ${CouchbaseLite_DIR}/../../../lib/libcblite.so*
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME} OPTIONAL)
+
+file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/cblite-js.lib)
+
+install(
+    FILES 
+    ${CouchbaseLite_DIR}/../../../bin/cblite.dll
+    ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib
+    ${CouchbaseLite_DIR}/../../../lib/libcblite.so*
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME} OPTIONAL)
+
+file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}/cblite-js.lib)

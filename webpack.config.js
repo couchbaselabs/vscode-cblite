@@ -36,11 +36,13 @@ const config = {
       {
         test: /\.node$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'node-loader'
+        loader: "node-loader",
+        options: {
+          name(resourcePath, resourceQuery) {
+            const path = require("path");
+            return resourcePath.split(path.sep).slice(-2).join(path.sep);
           }
-        ]
+        }
       }
     ]
   }
