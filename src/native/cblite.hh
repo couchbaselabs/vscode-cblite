@@ -60,18 +60,15 @@ void serializeToFleeceDict(Napi::Env env, fleece::MutableDict& dict, const Napi:
 
 #define CATCH_AND_ASSIGN(env) \
 catch(CBLError& e) { \
-    std::stringstream ss; \
-    FLSliceResult msg = CBLError_Message(&e); \
-    ss << "Couchbase Lite Error " << e.domain << " / " << e.code << ": " << (std::string)msg << std::endl; \
-    NAPI_THROW_VOID(\
-    FLSliceResult_Release(msg); \
-    return; \
+    std::ostringstream ss; \
+    auto msg = (std::string)CBLError_Message(&e); \
+    ss << "Couchbase Lite Error " << (int)e.domain << " / " << e.code << ": " << msg << std::endl; \
+    auto err = Napi::Error::New(env, ss.str()); \
+    err.Set("code", Napi::Number::New(env, e.code)); \
+    err.Set("domain", Napi::Number::New(env, e.domain)); \
+    NAPI_THROW_VOID(err); \
 } catch(std::exception& e) { \
-    Napi::Error::New(env, e.what()) \
-            .ThrowAsJavaScriptException(); \
-    return; \
+    NAPI_THROW_VOID(Napi::Error::New(env, e.what())); \
 } catch(...) { \
-    Napi::Error::New(env, "Unknown non-standard error occurred") \
-            .ThrowAsJavaScriptException(); \
-    return; \
+    NAPI_THROW_VOID(Napi::Error::New(env, "Unknown non-standard error occurred")); \
 }

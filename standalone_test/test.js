@@ -37,16 +37,16 @@ assert.strictEqual(Database.exists("invalid", "/tmp"), false);
 const dbConfig = new DatabaseConfiguration();
 dbConfig.directory = "/tmp";
 const db = new Database("test", dbConfig);
-console.log(db.name, db.path, db.count.toLocaleString())
+console.log(db.name, db.path, db.count.toLocaleString());
 
-const doc = new MutableDocument("test-doc")
+const doc = new MutableDocument("test-doc");
 console.log(doc.id);
 
 doc.cool = true;
 doc.answer = 42n;
-doc.name = "Jim"
-doc.array = [1, 2, 3]
-doc.blob = new Blob("application/octet-stream", new Uint8Array([0, 1, 2, 3, 4, 5]))
+doc.name = "Jim";
+doc.array = [1, 2, 3];
+doc.blob = new Blob("application/octet-stream", new Uint8Array([0, 1, 2, 3, 4, 5]));
 console.log(doc);
 
 db.saveDocument(doc);

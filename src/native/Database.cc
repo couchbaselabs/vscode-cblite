@@ -15,14 +15,16 @@ Database::Database(const Napi::CallbackInfo& info)
     CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
     std::string name = info[0].As<Napi::String>();
 
-    if(info.Length() == 2) {
-        CBL_TYPE_ASSERT(env, info[1].IsObject(), CBL_ARGTYPE_ERR_MSG(1, object));
-        auto* config = ObjectWrap<DatabaseConfiguration>::Unwrap(info[1].As<Napi::Object>());
-        _config = config;
-        _inner = cbl::Database(name, *config);
-    } else {
-        _inner = cbl::Database(name);
-    }
+   try {
+        if(info.Length() == 2) {
+            CBL_TYPE_ASSERT(env, info[1].IsObject(), CBL_ARGTYPE_ERR_MSG(1, object));
+            auto* config = ObjectWrap<DatabaseConfiguration>::Unwrap(info[1].As<Napi::Object>());
+            _config = config;
+            _inner = cbl::Database(name, *config);
+        } else {
+            _inner = cbl::Database(name);
+        }
+    } CATCH_AND_ASSIGN(env)
 }
 
 Napi::Value Database::exists(const Napi::CallbackInfo& info) {
