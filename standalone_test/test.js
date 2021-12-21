@@ -6,15 +6,15 @@ const { EncryptionAlgorithm, EncryptionKey, DatabaseConfiguration, Database, Mut
 function testBasic()
 {
     const instance = new DatabaseConfiguration();
-    assert.equal(instance.directory, undefined);
-    instance.directory = "/tmp"
+    assert.strictEqual(instance.directory, undefined);
+    instance.directory = "/tmp";
     assert.strictEqual(instance.directory, "/tmp", "Unexpected value returned");
 }
 
 function testEncryptionKey()
 {
     const instance = new DatabaseConfiguration();
-    assert.equal(instance.encryptionKey, undefined);
+    assert.strictEqual(instance.encryptionKey, undefined);
     var key = new EncryptionKey();
     assert.strictEqual(key.algorithm, EncryptionAlgorithm.NONE);
 

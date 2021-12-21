@@ -1,6 +1,6 @@
 import { ShowMoreItem } from "../explorer/treeItem";
 import { isDirectorySync } from "../utils/files";
-import { Database, DatabaseConfiguration, QueryLanguage } from "../native/binding";
+import { CBLErrorDomain, Database, DatabaseConfiguration, EncryptionKeyMethods, LiteCoreErrorCode, QueryLanguage } from "../native/binding";
 import { basename, dirname } from "path";
 
 export type SchemaItem = SchemaDatabase | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
@@ -36,52 +36,52 @@ export interface SchemaValue {
 
 export type Schema = SchemaDatabase;
 
-export function buildSchema(dbPath: string, upgrade: boolean): Promise<SchemaDatabase> {
-    return new Promise(async (resolve, reject) => {
-        if(!isDirectorySync(dbPath)) {
-            return reject(`Failed to retrieve database schema: '${dbPath}' is not a cblite2 folder.`);
-        }       
+export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
+    if(!isDirectorySync(dbPath)) {
+        let err: any;
+        err.domain = CBLErrorDomain.LITE_CORE;
+        err.code = LiteCoreErrorCode.NOT_A_DATABASE_FILE;
+        err.message = `'${dbPath}' is not a cblite2 folder.`;
+        throw err;
+    }
 
-        let config: DatabaseConfiguration = new DatabaseConfiguration();
-        config.directory = dirname(dbPath);
-        let filename = basename(dbPath).split(".")[0];
-        let db: Database;
-        try {
-             db = new Database(filename, config);
-        } catch(err: any) {
-            return reject("Failed to open database");
+    let config: DatabaseConfiguration = new DatabaseConfiguration();
+    config.directory = dirname(dbPath);
+    if(password) {
+        config.encryptionKey = EncryptionKeyMethods.createFromPassword(password);
+    }
+
+    let filename = basename(dbPath).split(".")[0];
+    let db = new Database(filename, config);
+    let query = db.createQuery(QueryLanguage.N1QL, "SELECT * FROM _");
+    let results = query.execute();
+
+    let schema = {
+        obj: db,
+        documents: [],
+        limit: ShowMoreItem.batchSize
+    } as SchemaDatabase;
+
+    if(results.length === 0) {
+        return schema;   
+    }
+
+    results.forEach(raw => {
+        let r = raw["_"];
+        let doc: SchemaDocument = {
+            id: r._id,
+            keys: [],
+            parent: schema
+        };
+
+        for(let key in r) {
+            recursiveBuild(doc, doc.keys, r[key], key);
         }
 
-        let query = db.createQuery(QueryLanguage.N1QL, "SELECT * FROM _");
-        let results = query.execute();
-
-        let schema = {
-            obj: db,
-            documents: [],
-            limit: ShowMoreItem.batchSize
-        } as SchemaDatabase;
-
-        if(results.length === 0) {
-            return resolve(schema);   
-        }
-
-        results.forEach(raw => {
-            let r = raw["_"];
-            let doc: SchemaDocument = {
-                id: r._id,
-                keys: [],
-                parent: schema
-            };
-
-            for(let key in r) {
-                recursiveBuild(doc, doc.keys, r[key], key);
-            }
-
-            schema.documents.push(doc);
-        });
-        
-        return resolve(schema);
+        schema.documents.push(doc);
     });
+
+    return schema;
 }
 
 function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item: any, key?: string): void {

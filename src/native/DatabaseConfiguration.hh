@@ -11,6 +11,8 @@ public:
 
     CBL_GETSET(algorithm);
     CBL_GETSET(bytes);
+
+    static Napi::Value createFromPassword(const Napi::CallbackInfo&);
 private:
     size_t setBytes(Napi::Env& env, Napi::Value val);
 };

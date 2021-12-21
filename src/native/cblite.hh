@@ -58,12 +58,11 @@ void serializeToFleeceDict(Napi::Env env, fleece::MutableDict& dict, const Napi:
 #define CBL_ARGTYPE_ERR_MSG(p, t) "Incorrect type for argument " #p " (expected " #t ")"
 #define CBL_ACCESSOR_TYPE_ERR_MSG(t) "Incorrect type for accessor (expected " #t ")"
 
-#define CATCH_AND_ASSIGN(env) \
+#define CATCH_AND_ASSIGN_VOID(env) \
 catch(CBLError& e) { \
-    std::ostringstream ss; \
-    auto msg = (std::string)CBLError_Message(&e); \
-    ss << "Couchbase Lite Error " << (int)e.domain << " / " << e.code << ": " << msg << std::endl; \
-    auto err = Napi::Error::New(env, ss.str()); \
+    auto msg = "Couchbase Lite Error " + std::to_string(e.domain) + " / " + \
+        std::to_string(e.code) + " " + (std::string)CBLError_Message(&e); \
+    auto err = Napi::Error::New(env, msg); \
     err.Set("code", Napi::Number::New(env, e.code)); \
     err.Set("domain", Napi::Number::New(env, e.domain)); \
     NAPI_THROW_VOID(err); \
@@ -71,4 +70,18 @@ catch(CBLError& e) { \
     NAPI_THROW_VOID(Napi::Error::New(env, e.what())); \
 } catch(...) { \
     NAPI_THROW_VOID(Napi::Error::New(env, "Unknown non-standard error occurred")); \
+}
+
+#define CATCH_AND_ASSIGN(env) \
+catch(CBLError& e) { \
+    auto msg = "Couchbase Lite Error " + std::to_string(e.domain) + " / " + \
+        std::to_string(e.code) + " " + (std::string)CBLError_Message(&e); \
+    auto err = Napi::Error::New(env, msg); \
+    err.Set("code", Napi::Number::New(env, e.code)); \
+    err.Set("domain", Napi::Number::New(env, e.domain)); \
+    NAPI_THROW(err, env.Undefined()); \
+} catch(std::exception& e) { \
+    NAPI_THROW(Napi::Error::New(env, e.what()), env.Undefined()); \
+} catch(...) { \
+    NAPI_THROW(Napi::Error::New(env, "Unknown non-standard error occurred"), env.Undefined()); \
 }

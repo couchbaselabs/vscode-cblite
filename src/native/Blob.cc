@@ -1,5 +1,15 @@
 #include "Blob.hh"
 
+Napi::Value Blob::isBlob(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT(env, info[0].IsObject(), CBL_ARGTYPE_ERR_MSG(0, object));
+    
+    fleece::MutableDict dict = fleece::MutableDict::newDict();
+    serializeToFleeceDict(env, dict, info[0].As<Napi::Object>());
+    return Napi::Boolean::New(env, cbl::Blob::isBlob(dict));
+}
+
 Blob::Blob(const Napi::CallbackInfo& info) 
     :CouchbaseWrapper(info)
 {
@@ -48,7 +58,7 @@ Napi::Value Blob::get_digest(const Napi::CallbackInfo& info) {
 
 Napi::Object Blob::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "Blob", {
-        //MY_STATIC_METHOD(isBlob),
+        MY_STATIC_METHOD(isBlob),
         MY_GETTER(length),
         MY_GETTER(contentType),
         MY_GETTER(digest)

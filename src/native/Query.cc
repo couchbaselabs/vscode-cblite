@@ -113,7 +113,9 @@ Query::Query(const Napi::CallbackInfo& info)
     auto* db = ObjectWrap<Database>::Unwrap(info[0].As<Napi::Object>());
     auto language = (CBLQueryLanguage)info[1].ToNumber().Int32Value();
     auto expression = (std::string)info[2].As<Napi::String>();
-    _inner = cbl::Query(*db, language, expression);
+    try {
+        _inner = cbl::Query(*db, language, expression);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 Napi::Value Query::columnNames(const Napi::CallbackInfo& info) {
@@ -136,7 +138,11 @@ Napi::Value Query::execute(const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
 
-    auto results = _inner.execute();
+    cbl::ResultSet results;
+    try {
+        results = _inner.execute();
+    } CATCH_AND_ASSIGN(env);
+    
     Napi::Array retVal = Napi::Array::New(env);
     int index = 0;
     for(const auto& result : results) {

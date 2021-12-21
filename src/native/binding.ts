@@ -9,6 +9,48 @@ if(os.platform() === "win32") {
     addon = require("../../out/Linux/cblite-js.node");
 }
 
+export enum CBLErrorDomain {
+    LITE_CORE = 1,
+    POSIX,
+    SQLITE,
+    FLEECE,
+    NETWORK,
+    WEB_SOCKET
+}
+
+export enum LiteCoreErrorCode {
+    ASSERTION_FAILED = 1,
+    UNIMPLEMENTED,
+    UNSUPPORTED_ENCRYPTION,
+    BAD_REVISION_ID,
+    CORRUPT_REVISION_DATA,
+    NOT_OPEN,
+    NOT_FOUND,
+    CONFLICT,
+    INVALID_PARAMETER,
+    UNEXPECTED_ERROR,
+    CANT_OPEN_FILE,
+    IO_ERROR,
+    MEMORY_ERROR,
+    NOT_WRITEABLE,
+    CORRUPT_DATA,
+    BUSY,
+    NOT_IN_TRANSACTION,
+    TRANSACTION_NOT_CLOSED,
+    UNSUPPORTED,
+    NOT_A_DATABASE_FILE,
+    WRONG_FORMAT,
+    CRYPTO,
+    INVALID_QUERY,
+    MISSING_INDEX,
+    INVALID_QUERY_PARAM,
+    REMOTE_ERROR,
+    DATABASE_TOO_OLD,
+    DATABASE_TOO_NEW,
+    BAD_DOC_ID,
+    CANT_UPGRADE_DATABASE
+}
+
 export enum EncryptionAlgorithm {
     NONE,
     AES256
@@ -17,6 +59,12 @@ export enum EncryptionAlgorithm {
 export interface EncryptionKey {
     algorithm: EncryptionAlgorithm
     bytes: ArrayBuffer | Uint8Array
+}
+
+export class EncryptionKeyMethods {
+    public static createFromPassword(password: string) : EncryptionKey {
+        return addon.EncryptionKey.createFromPassword(password);
+    }
 }
 
 export var EncryptionKey: {

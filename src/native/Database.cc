@@ -24,7 +24,7 @@ Database::Database(const Napi::CallbackInfo& info)
         } else {
             _inner = cbl::Database(name);
         }
-    } CATCH_AND_ASSIGN(env)
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 Napi::Value Database::exists(const Napi::CallbackInfo& info) {
@@ -47,13 +47,15 @@ void Database::copyDatabase(const Napi::CallbackInfo& info) {
     CBL_TYPE_ASSERT(env, info[1].IsString(), CBL_ARGTYPE_ERR_MSG(1, string));
     std::string from = info[0].As<Napi::String>();
     std::string to = info[1].As<Napi::String>();
-    if(info.Length() == 3) {
-        CBL_TYPE_ASSERT(env, info[2].IsObject(), CBL_ARGTYPE_ERR_MSG(2, object));
-        auto* config = Napi::ObjectWrap<DatabaseConfiguration>::Unwrap(info[2].As<Napi::Object>());
-        cbl::Database::copyDatabase(from, to, *config);
-    } else {
-        cbl::Database::copyDatabase(from, to);
-    }
+    try {
+        if(info.Length() == 3) {
+            CBL_TYPE_ASSERT(env, info[2].IsObject(), CBL_ARGTYPE_ERR_MSG(2, object));
+            auto* config = Napi::ObjectWrap<DatabaseConfiguration>::Unwrap(info[2].As<Napi::Object>());
+            cbl::Database::copyDatabase(from, to, *config);
+        } else {
+            cbl::Database::copyDatabase(from, to);
+        }
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void Database::deleteDatabase(const Napi::CallbackInfo& info) {
@@ -64,7 +66,9 @@ void Database::deleteDatabase(const Napi::CallbackInfo& info) {
 
     std::string name = info[0].As<Napi::String>();
     std::string inDir = info[1].As<Napi::String>();
-    cbl::Database::deleteDatabase(name, inDir);
+    try { 
+        cbl::Database::deleteDatabase(name, inDir);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 Napi::Value Database::get_name(const Napi::CallbackInfo& info) {
@@ -99,14 +103,18 @@ void Database::close(const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
 
-    _inner.close();
+    try {
+        _inner.close();
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void Database::deleteDb(const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
 
-    _inner.deleteDatabase();
+    try {
+        _inner.deleteDatabase();
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 Napi::Value Database::getDocument(const Napi::CallbackInfo& info) {
@@ -116,10 +124,12 @@ Napi::Value Database::getDocument(const Napi::CallbackInfo& info) {
 
     auto retVal = ObjectWrap<Document>::Unwrap(cbl_get_constructor("Document").New({}));
     std::string id = info[0].As<Napi::String>();
-    auto inner = _inner.getDocument(id);
-    retVal->setInner(inner);
-    retVal->syncFleeceProperties(env);
-    return retVal->Value();
+    try {
+        auto inner = _inner.getDocument(id);
+        retVal->setInner(inner);
+        retVal->syncFleeceProperties(env);
+        return retVal->Value();
+    } CATCH_AND_ASSIGN(env)
 }
 
 Napi::Value Database::getMutableDocument(const Napi::CallbackInfo& info) {
@@ -129,10 +139,12 @@ Napi::Value Database::getMutableDocument(const Napi::CallbackInfo& info) {
 
     auto retVal = ObjectWrap<MutableDocument>::Unwrap(cbl_get_constructor("MutableDocument").New({}));
     std::string id = info[0].As<Napi::String>();
-    auto inner = _inner.getMutableDocument(id);
-    retVal->setInner(inner);
-    retVal->syncFleeceProperties(env);
-    return retVal->Value();
+    try {
+        auto inner = _inner.getMutableDocument(id);
+        retVal->setInner(inner);
+        retVal->syncFleeceProperties(env);
+        return retVal->Value();
+    } CATCH_AND_ASSIGN(env)
 }
 
 void Database::saveDocument(const Napi::CallbackInfo& info) {
@@ -143,7 +155,9 @@ void Database::saveDocument(const Napi::CallbackInfo& info) {
     auto doc = ObjectWrap<MutableDocument>::Unwrap(info[0].As<Napi::Object>());
     doc->syncJSProperties(env);
     cbl::MutableDocument cblDoc = *doc;
-    _inner.saveDocument(cblDoc);
+    try {
+        _inner.saveDocument(cblDoc);
+    } CATCH_AND_ASSIGN_VOID(env);
 }
 
 void Database::deleteDocument(const Napi::CallbackInfo& info) {
@@ -153,7 +167,9 @@ void Database::deleteDocument(const Napi::CallbackInfo& info) {
 
     auto doc = ObjectWrap<Document>::Unwrap(info[0].As<Napi::Object>());
     cbl::Document cblDoc = *doc;
-    _inner.deleteDocument(cblDoc);
+    try {
+        _inner.deleteDocument(cblDoc);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void Database::createValueIndex(const Napi::CallbackInfo& info) {
@@ -164,7 +180,9 @@ void Database::createValueIndex(const Napi::CallbackInfo& info) {
 
     std::string name = info[0].As<Napi::String>();
     auto* config = ObjectWrap<ValueIndexConfiguration>::Unwrap(info[1].As<Napi::Object>());
-    _inner.createValueIndex(name, *config);
+    try {
+        _inner.createValueIndex(name, *config);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void Database::createFullTextIndex(const Napi::CallbackInfo& info) {
@@ -175,7 +193,9 @@ void Database::createFullTextIndex(const Napi::CallbackInfo& info) {
 
     std::string name = info[0].As<Napi::String>();
     auto* config = ObjectWrap<FullTextIndexConfiguration>::Unwrap(info[1].As<Napi::Object>());
-    _inner.createFullTextIndex(name, *config);
+    try {
+        _inner.createFullTextIndex(name, *config);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void Database::deleteIndex(const Napi::CallbackInfo& info) {
@@ -184,7 +204,9 @@ auto env = info.Env();
     CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
 
     std::string name = info[0].As<Napi::String>();
-    _inner.deleteIndex(name);
+    try {
+        _inner.deleteIndex(name);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 Napi::Value Database::getIndexNames(const Napi::CallbackInfo& info) {

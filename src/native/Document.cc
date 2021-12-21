@@ -100,7 +100,9 @@ void MutableDocument::setPropertiesAsJSON(const Napi::CallbackInfo& info) {
     CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
 
     std::string json = info[0].As<Napi::String>();
-    _inner.setPropertiesAsJSON(json);
+    try {
+        _inner.setPropertiesAsJSON(json);
+    } CATCH_AND_ASSIGN_VOID(env)
 }
 
 void MutableDocument::syncJSProperties(Napi::Env env) {

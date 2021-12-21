@@ -29,14 +29,13 @@ void DatabaseConfiguration::set_directory(const Napi::CallbackInfo& info, const 
 
 Napi::Value DatabaseConfiguration::get_encryptionKey(const Napi::CallbackInfo& info) {
     #ifndef COUCHBASE_ENTERPRISE
-    CBL_ASSERT(env, false, "Not supported in community edition");
-    return Napi::Object();
+    NAPI_THROW(Napi::Error::New(env, "Not supported in community edition"));
     #else
     if(_encryptionKey) {
         return _encryptionKey->Value();
     }
 
-    return Napi::Object();
+    return info.Env().Undefined();
     #endif
 }
 
@@ -123,12 +122,31 @@ size_t EncryptionKey::setBytes(Napi::Env& env, Napi::Value val) {
     return len;
 }
 
+Napi::Value EncryptionKey::createFromPassword(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(string));
+    auto pw = (std::string)info[0].As<Napi::String>();
+
+    CBLEncryptionKey key;
+    if(!CBLEncryptionKey_FromPassword(&key, FLStr(pw.c_str()))) {
+        NAPI_THROW(Napi::Error::New(env, "Failed to create key from password"), env.Undefined());
+    }
+
+    Napi::Object retVal = cbl_get_constructor("EncryptionKey").New({});
+    auto* unwrapped = ObjectWrap<EncryptionKey>::Unwrap(retVal);
+    unwrapped->setInner(key);
+    return retVal;
+}
+
 #define MY_GETTER_SETTER(x) CBL_GETTER_SETTER(EncryptionKey, x)
+#define MY_STATIC_METHOD(x) CBL_STATIC_METHOD(EncryptionKey, x)
 
 Napi::Object EncryptionKey::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "EncryptionKey", {
         MY_GETTER_SETTER(algorithm),
-        MY_GETTER_SETTER(bytes)
+        MY_GETTER_SETTER(bytes),
+        MY_STATIC_METHOD(createFromPassword)
     });
 
     cbl_init_object(exports, "EncryptionKey", func);

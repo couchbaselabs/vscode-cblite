@@ -9,7 +9,7 @@ import Clipboard from "./utils/clipboard";
 import { N1QLProvider } from "./providers/n1ql.provider";
 import { ShowMoreItem } from "./explorer/treeItem";
 import { buildSchema, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
-import { Database, DatabaseConfiguration, MutableDocument, QueryLanguage } from "./native/binding";
+import { CBLErrorDomain, Database, DatabaseConfiguration, LiteCoreErrorCode, MutableDocument, QueryLanguage } from "./native/binding";
 import { basename, dirname } from "path";
 
 export namespace Commands {
@@ -32,9 +32,6 @@ export namespace Commands {
     export const quickQuery: string = 'cblite.quickQuery';
 	export const createDocument: string = 'cblite.createDocument';
 	export const updateDocument: string = 'cblite.updateDocument';
-
-	//Internal
-	export const explorerUpgrade: string = 'cblite.internal.explorer.upgrade';
 }
 
 let configuration: Configuration;
@@ -67,7 +64,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerAdd, (dbUri?: Uri) => {
 		let dbPath = dbUri? dbUri.fsPath : undefined;
-        return explorerAdd(false, dbPath);
+        return explorerAdd(undefined, dbPath);
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerRemove, (item?: {obj: Database}) => {
@@ -146,10 +143,6 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 		item.showMore();
 	}));
 
-	context.subscriptions.push(commands.registerCommand(Commands.explorerUpgrade, (dbPath: string) => {
-        return explorerAdd(true, dbPath);
-	}));
-
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
 	languages.registerCompletionItemProvider("n1ql", N1QLProvider, ...characters);
 
@@ -225,30 +218,34 @@ async function saveDocument(update: boolean) {
 	window.setStatusBarMessage(`Save completed!`, 2000);
 }
 
-function explorerAdd(upgrade: boolean, dbPath?: string): Thenable<void> {
+async function explorerAdd(password?: string, dbPath?: string): Promise<void> {
 	if(dbPath) {
-		return buildSchema(dbPath, upgrade).then(schema => {
-			return explorer.add(schema);
-		}, err =>  {
+		try {
+			let schema = buildSchema(dbPath, password);
+			explorer.add(schema);
+		} catch(err: any) {
 			let message = `Failed to open database: ${err.message}`;
-			if(parseInt(err.message.substring(err.message.length - 5, err.message.length - 4)) === 1
-			&& parseInt(err.message.substring(err.message.length - 3, err.message.length - 1)) === 30) {
-				showErrorMessage(`Failed to open database: Error: The database needs to be upgraded to be opened by this version of LiteCore. 
-								**This will likely make it unreadable by earlier versions.**`, 
-								{title: "Show output", command: Commands.showOutputChannel},
-								{title: "Upgrade", command: Commands.explorerUpgrade, args: [dbPath]});
+			if(err.domain === CBLErrorDomain.LITE_CORE && 
+				err.code === LiteCoreErrorCode.NOT_A_DATABASE_FILE &&
+				!password) {
+				password = await window.showInputBox({prompt: "Please enter the DB password", password: true});
+				if(!password) {
+					showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
+				} else {
+					await explorerAdd(password, dbPath);
+				}
 			} else {
 				showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
 			}
-		});
+			return;
+		}
 	} else {
-		return pickWorkspaceDatabase(false).then(dbPath => {
-			if(dbPath) {
-				return explorerAdd(upgrade, dbPath);
-			}
-		}, err => {
+		try {
+			dbPath = await pickWorkspaceDatabase(false);
+			await explorerAdd(password, dbPath);
+		} catch(err: any) {
 			// No database selected
-		});
+		}
 	}
 }
 
