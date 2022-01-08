@@ -70,7 +70,7 @@ export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
     results.forEach(raw => {
         let r = raw["_"];
         let doc: SchemaDocument = {
-            id: raw["$1"],
+            id: raw["id"],
             keys: [],
             parent: schema
         };
