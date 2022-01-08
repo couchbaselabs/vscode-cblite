@@ -44,7 +44,7 @@ export class DocumentItem extends N1QLItem {
 
 export class ValueItem extends N1QLItem {
     constructor(value: any, command?: Command) {
-        super(value.toString(), value.toString(), TreeItemCollapsibleState.None, command);
+        super(value ? value.toString() : "(null)", value ? value.toString() : "(null)", TreeItemCollapsibleState.None, command);
 
         this.contextValue = "cblite.valueItem";
     }

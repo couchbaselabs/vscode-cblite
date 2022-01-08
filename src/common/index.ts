@@ -51,9 +51,10 @@ export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
         config.encryptionKey = EncryptionKeyMethods.createFromPassword(password);
     }
 
-    let filename = basename(dbPath).split(".")[0];
+    let filename = basename(dbPath);
+    filename = filename.substr(0, filename.lastIndexOf(".")) || filename;
     let db = new Database(filename, config);
-    let query = db.createQuery(QueryLanguage.N1QL, "SELECT * FROM _");
+    let query = db.createQuery(QueryLanguage.N1QL, "SELECT *, meta().id FROM _");
     let results = query.execute();
 
     let schema = {
@@ -69,7 +70,7 @@ export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
     results.forEach(raw => {
         let r = raw["_"];
         let doc: SchemaDocument = {
-            id: r._id,
+            id: raw["$1"],
             keys: [],
             parent: schema
         };
@@ -126,6 +127,10 @@ function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item
 
 export function stringify(obj: any): string {
     return JSON.stringify(obj, (key, value) => {
+        if(value === null) {
+            return null;
+        }
+
         return typeof value === "bigint" ? value.toString() + "n" : value;
     });
 }
