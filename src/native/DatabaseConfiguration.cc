@@ -125,7 +125,7 @@ size_t EncryptionKey::setBytes(Napi::Env& env, Napi::Value val) {
 Napi::Value EncryptionKey::createFromPassword(const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
-    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(string));
+    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(1, string));
     auto pw = (std::string)info[0].As<Napi::String>();
 
     CBLEncryptionKey key;
