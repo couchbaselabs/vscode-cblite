@@ -190,7 +190,7 @@
 			"explorer/context": [
 				{
 					"command": "cblite.explorer.add",
-					"when": "resourceLangId == db && explorerResourceIsFolder",
+					"when": "resourceLangId == cblite && explorerResourceIsFolder",
 					"group": "navigation@1"
 				}
 			],
@@ -275,7 +275,7 @@
 				]
 			},
 			{
-				"id": "db",
+				"id": "cblite",
 				"aliases": [
 					"Database"
 				],
