@@ -1,13 +1,19 @@
 let addon: any;
 const os = require("os");
+import { logger } from "../logging/logger";
 
 if(os.platform() === "win32") {
+    logger.info("Loading Windows NAPI addon...");
     addon = require("../../out/Windows/cblite-js.node");
 } else if(os.platform() === "darwin") {
+    logger.info("Loading macOS NAPI addon...");
     addon = require("../../out/Darwin/cblite-js.node");
 } else {
+    logger.info("Loading Linux NAPI addon...");
     addon = require("../../out/Linux/cblite-js.node");
 }
+
+logger.info("\t...done!");
 
 export enum CBLErrorDomain {
     LITE_CORE = 1,

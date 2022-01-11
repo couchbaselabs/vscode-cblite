@@ -1,5 +1,5 @@
 //import { Schema } from "inspector";
-import { basename } from "path";
+import { basename, join } from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { SchemaDatabase } from "../common";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
@@ -21,6 +21,10 @@ export class DBItem extends N1QLItem {
         super(dbPath, basename(dbPath), TreeItemCollapsibleState.Collapsed, command);
         
         this.contextValue = "cblite.databaseItem";
+        this.iconPath = {
+            light: join(__dirname, "..", "resources", "icon", "light", "bucket.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "bucket.svg")
+        };
     }
 
     // @ts-ignore
@@ -34,6 +38,10 @@ export class DocumentItem extends N1QLItem {
         super(id, id, TreeItemCollapsibleState.Collapsed, command);
 
         this.contextValue = "cblite.documentItem";
+        this.iconPath = {
+            light: join(__dirname, "..", "resources", "icon", "light", "documents.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "documents.svg")
+        };
     }
 
     // @ts-ignore

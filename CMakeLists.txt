@@ -11,6 +11,12 @@ endif()
 
 ##### REMOVE LATER WHEN C++ HEADERS ARE A PART OF THE PRODUCT #####
 
+if(NOT CBL_CPP_BRANCH)
+    set(CBL_CPP_BRANCH "master")
+endif()
+
+message(STATUS "Using ${CBL_CPP_BRANCH} to fetch C++ headers")
+
 if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++)
 endif()
@@ -38,7 +44,7 @@ foreach(HEADER IN LISTS CBL_CPP_HEADERS)
         message(STATUS "Fetching cbl++ header ${HEADER}...")
         file(
             DOWNLOAD 
-            "https://raw.githubusercontent.com/couchbase/couchbase-lite-C/master/include/cbl%2B%2B/${HEADER}"
+            "https://raw.githubusercontent.com/couchbase/couchbase-lite-C/${CBL_CPP_BRANCH}/include/cbl%2B%2B/${HEADER}"
             ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++/${HEADER}
         )    
     endif()
@@ -49,7 +55,7 @@ foreach(HEADER IN LISTS FLEECE_CPP_HEADERS)
         message(STATUS "Fetching fleece header ${HEADER}...")
         file(
             DOWNLOAD 
-            "https://raw.githubusercontent.com/couchbaselabs/fleece/master/API/fleece/${HEADER}"
+            "https://raw.githubusercontent.com/couchbaselabs/fleece/${CBL_CPP_BRANCH}/API/fleece/${HEADER}"
             ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/fleece/${HEADER}
         )    
     endif()
