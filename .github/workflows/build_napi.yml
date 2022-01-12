@@ -1,6 +1,6 @@
 name: Build NAPI Addons
 
-on
+on:
   push:
     branches:
       - master
