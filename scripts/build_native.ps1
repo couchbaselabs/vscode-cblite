@@ -1,6 +1,6 @@
 Push-Location $PSScriptRoot/..
 
 npm install
-cmake-js compile -T install
+npm run build-native
 
 Pop-Location
