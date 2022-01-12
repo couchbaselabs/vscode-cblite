@@ -31,4 +31,4 @@ jobs:
 
     - name: Compile
       working-directory: ${{ github.workspace }}/scripts
-      run: ${{ matrix.script }}
+      run: ./${{ matrix.script }}
