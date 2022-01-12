@@ -4,16 +4,32 @@ import { logger } from "../logging/logger";
 
 if(os.platform() === "win32") {
     logger.info("Loading Windows NAPI addon...");
-    addon = require("../../out/Windows/cblite-js.node");
+    try {
+        addon = require("../../out/Windows/cblite-js.node");
+    } catch(e) {
+        logger.error("Failed to load...");
+        logger.error(e);
+        throw e;
+    }
 } else if(os.platform() === "darwin") {
     logger.info("Loading macOS NAPI addon...");
-    addon = require("../../out/Darwin/cblite-js.node");
+    try {
+        addon = require("../../out/Darwin/cblite-js.node");
+    } catch(e) {
+        logger.error("Failed to load...");
+        logger.error(e);
+        throw e;
+    }
 } else {
     logger.info("Loading Linux NAPI addon...");
-    addon = require("../../out/Linux/cblite-js.node");
+    try {
+        addon = require("../../out/Linux/cblite-js.node");
+    } catch(e) {
+        logger.error("Failed to load...");
+        logger.error(e);
+        throw e;
+    }
 }
-
-logger.info("\t...done!");
 
 export enum CBLErrorDomain {
     LITE_CORE = 1,

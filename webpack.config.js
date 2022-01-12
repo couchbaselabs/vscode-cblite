@@ -39,8 +39,12 @@ const config = {
         loader: "node-loader",
         options: {
           name(resourcePath, resourceQuery) {
-            const path = require("path");
-            return resourcePath.split(path.sep).slice(-2).join(path.sep);
+            const parts = resourcePath.split(path.sep).slice(-2);
+            const ret = parts[0] === "Windows"
+              ? parts.join("\\")
+              : parts.join("/");
+            console.log("--- Transforming NAPI path", resourcePath, "->", ret);
+            return ret;
           }
         }
       }
