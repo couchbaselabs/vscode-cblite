@@ -1,7 +1,7 @@
 {
 	"name": "vscode-cblite",
 	"icon": "resources/icon/icon_128x128.png",
-	"displayName": "cblite",
+	"displayName": "Couchbase Lite",
 	"description": "Explore and query Couchbase Lite databases",
 	"version": "0.1.0",
 	"publisher": "couchbase",

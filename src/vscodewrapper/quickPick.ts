@@ -58,7 +58,7 @@ export function pickWorkspaceDatabase(autopick: boolean, hint?: string): Thenabl
                 resolve(item.path);
             } else if(item instanceof QuickPick.FileDialogItem) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                window.showOpenDialog({filters: {"Database (.cblite2)": ["cblite2"]}, canSelectFiles: false, canSelectFolders: true}).then(fileUri => {
+                window.showOpenDialog({filters: {"Database (.cblite2)": ["cblite2"]}, canSelectFiles: true, canSelectFolders: true}).then(fileUri => {
                     if(fileUri) {
                         resolve(fileUri[0].fsPath);
                     } else {

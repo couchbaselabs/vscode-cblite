@@ -110,13 +110,15 @@ install(
 
 
 # Install the runtime runtime files into both location (node.js and vscode extension)
-file(GLOB_RECURSE LINUX_LIBS ${CouchbaseLite_DIR}/../../../libcblite.so*)
+
+# Note: Later when we get a portable libcblite.so, reinstate this line!
+# file(GLOB_RECURSE LINUX_LIBS ${CouchbaseLite_DIR}/../../../libcblite.so*)
 file(GLOB_RECURSE MAC_LIBS ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib)
 install(
     FILES 
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
     ${MAC_LIBS}
-    ${LINUX_LIBS}
+    #${LINUX_LIBS}
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}
     OPTIONAL
 )
@@ -127,7 +129,7 @@ install(
     FILES 
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
     ${MAC_LIBS}
-    ${LINUX_LIBS}
+    #${LINUX_LIBS}
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}
     OPTIONAL
 )
