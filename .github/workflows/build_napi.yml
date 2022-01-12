@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@2
+    - uses: actions/checkout@v2
 
     - name: Compile
       working-directory: ${{ github.workspace }}/scripts
