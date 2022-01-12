@@ -43,10 +43,10 @@ foreach(HEADER IN LISTS CBL_CPP_HEADERS)
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++/${HEADER})
         message(STATUS "Fetching cbl++ header ${HEADER}...")
         file(
-            DOWNLOAD 
+            DOWNLOAD
             "https://raw.githubusercontent.com/couchbase/couchbase-lite-C/${CBL_CPP_BRANCH}/include/cbl%2B%2B/${HEADER}"
             ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++/${HEADER}
-        )    
+        )
     endif()
 endforeach()
 
@@ -54,10 +54,10 @@ foreach(HEADER IN LISTS FLEECE_CPP_HEADERS)
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/fleece/${HEADER})
         message(STATUS "Fetching fleece header ${HEADER}...")
         file(
-            DOWNLOAD 
+            DOWNLOAD
             "https://raw.githubusercontent.com/couchbaselabs/fleece/${CBL_CPP_BRANCH}/API/fleece/${HEADER}"
             ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/fleece/${HEADER}
-        )    
+        )
     endif()
 endforeach()
 
@@ -96,9 +96,9 @@ find_package(
 )
 
 target_link_libraries(
-    ${PROJECT_NAME} 
+    ${PROJECT_NAME}
     PRIVATE
-    ${CMAKE_JS_LIB} 
+    ${CMAKE_JS_LIB}
     cblite
 )
 
@@ -115,22 +115,22 @@ install(
 # file(GLOB_RECURSE LINUX_LIBS ${CouchbaseLite_DIR}/../../../libcblite.so*)
 file(GLOB_RECURSE MAC_LIBS ${CouchbaseLite_DIR}/../../../lib/libcblite*.dylib)
 install(
-    FILES 
+    FILES
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
     ${MAC_LIBS}
     #${LINUX_LIBS}
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out
     OPTIONAL
 )
 
 file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/cblite-js.lib)
 
 install(
-    FILES 
+    FILES
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
     ${MAC_LIBS}
     #${LINUX_LIBS}
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist
     OPTIONAL
 )
 

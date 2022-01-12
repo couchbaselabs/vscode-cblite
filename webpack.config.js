@@ -40,9 +40,8 @@ const config = {
         options: {
           name(resourcePath, resourceQuery) {
             const parts = resourcePath.split(path.sep).slice(-2);
-            const ret = parts[0] === "Windows"
-              ? parts.join("\\")
-              : parts.join("/");
+            const nameParts = parts[1].split(".");
+            const ret = nameParts[0] + "-" + parts[0] + "." + nameParts[1];
             console.log("--- Transforming NAPI path", resourcePath, "->", ret);
             return ret;
           }
