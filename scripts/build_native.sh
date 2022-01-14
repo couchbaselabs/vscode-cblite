@@ -15,7 +15,7 @@ case "$OSTYPE" in
     darwin*)
         DOWNLOAD_URL="https://packages.couchbase.com/releases/couchbase-lite-c/$CBL_C_VERSION/couchbase-lite-c-enterprise-$CBL_C_VERSION-macos.zip"
         DOWNLOAD_FILENAME="cbl.zip"
-        EXPAND="unzip --preserve-symlinks"
+        EXPAND="unzip"
         ;;
 esac
 
