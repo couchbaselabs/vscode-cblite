@@ -5,9 +5,13 @@
 	"description": "Explore and query Couchbase Lite databases",
 	"version": "0.1.0",
 	"publisher": "couchbase",
+	"homepage": "https://www.couchbase.com/products/lite",
 	"repository": {
 		"url": "https://github.com/couchbaselabs/vscode-cblite",
 		"type": "git"
+	},
+	"bugs": {
+		"url": "https://github.com/couchbaselabs/vscode-cblite/issues"
 	},
 	"license": "Apache-2.0",
 	"engines": {
@@ -316,8 +320,8 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "cmake-js compile -T install && tsc && webpack --mode production",
-		"compile": "cmake-js compile --debug -T install && tsc && webpack --mode development",
+		"vscode:prepublish": "cmake-js compile -T install --CDCBL_CPP_BRANCH=release/lithium && tsc && webpack --mode production",
+		"compile": "cmake-js compile --debug -T install --CDCBL_CPP_BRANCH=release/lithium && tsc && webpack --mode development",
 		"lint": "eslint src --ext ts",
 		"watch": "webpack --mode development --watch",
 		"pretest": "npm run compile && npm run lint",
