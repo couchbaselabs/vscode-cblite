@@ -321,9 +321,9 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "cmake-js compile -T install --CDCBL_CPP_BRANCH=release/lithium && tsc && webpack --mode production",
+		"build-native": "cmake-js compile -T install --CDCBL_CPP_BRANCH=release/lithium",
 		"compile": "cmake-js compile --debug -T install --CDCBL_CPP_BRANCH=release/lithium && tsc && webpack --mode development",
 		"lint": "eslint src --ext ts",
-		"watch": "webpack --mode development --watch",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node --napi-modules standalone_test/test.js",
 		"package": "vsce package"
