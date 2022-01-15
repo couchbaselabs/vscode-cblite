@@ -50,21 +50,21 @@ jobs:
 
     - name: Retrieve Linux Artifact
       uses: actions/download-artifact@v2
-        with:
-          name: Linux
-          path: ${{ github.workspace }}/out/Linux
+      with:
+        name: Linux
+        path: ${{ github.workspace }}/out/Linux
 
     - name: Retrieve macOS Artifact
       uses: actions/download-artifact@v2
-        with:
-          name: Darwin
-          path: ${{ github.workspace }}/out/Darwin
+      with:
+        name: Darwin
+        path: ${{ github.workspace }}/out/Darwin
 
     - name: Retrieve Windows Artifact
       uses: actions/download-artifact@v2
-        with:
-          name: Windows
-          path: ${{ github.workspace }}/out/Windows
+      with:
+        name: Windows
+        path: ${{ github.workspace }}/out/Windows
 
     - name: Remove Linux libcblite
       run: "rm ${{ github.workspace }}/out/Linux/libcblite*"
