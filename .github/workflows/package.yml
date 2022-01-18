@@ -67,7 +67,7 @@ jobs:
         path: ${{ github.workspace }}/out/Windows
 
     - name: Remove Linux libcblite
-      run: "rm ${{ github.workspace }}/out/Linux/libcblite*"
+      run: "rm -rf ${{ github.workspace }}/out/Linux/libcblite*"
 
     - name: Package
       run: "npm run package"
