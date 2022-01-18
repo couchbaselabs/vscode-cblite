@@ -70,7 +70,7 @@ jobs:
       run: "rm -rf ${{ github.workspace }}/out/Linux/libcblite*"
 
     - name: Package
-      run: "npm run package"
+      run: "npm install && npm run package"
 
     - name: Publish
       uses: softprops/action-gh-release@v1
