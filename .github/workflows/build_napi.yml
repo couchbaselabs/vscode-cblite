@@ -10,7 +10,6 @@ on:
 
 jobs:
   build_napi:
-    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     name: Build
     strategy:
       matrix:

@@ -68,6 +68,7 @@ jobs:
 
     - name: Package
       run: |
+        mkdir -p ${{ github.workspace }}/dist
         cp ${{ github.workspace }}/out/Darwin/libcblite* ${{ github.workspace }}/dist
         cp ${{ github.workspace }}/out/Windows/cblite.dll ${{ github.workspace }}/dist
         npm install
