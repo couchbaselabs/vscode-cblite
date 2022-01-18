@@ -119,11 +119,9 @@ install(
     ${CouchbaseLite_DIR}/../../../bin/cblite.dll
     ${MAC_LIBS}
     #${LINUX_LIBS}
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}
     OPTIONAL
 )
-
-file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/cblite-js.lib)
 
 install(
     FILES
@@ -133,5 +131,3 @@ install(
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dist
     OPTIONAL
 )
-
-file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}/cblite-js.lib)

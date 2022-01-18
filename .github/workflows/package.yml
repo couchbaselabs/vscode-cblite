@@ -66,11 +66,12 @@ jobs:
         name: Windows
         path: ${{ github.workspace }}/out/Windows
 
-    - name: Remove Linux libcblite
-      run: "rm -rf ${{ github.workspace }}/out/Linux/libcblite*"
-
     - name: Package
-      run: "npm install && npm run package"
+      run: |
+        cp ${{ github.workspace }}/out/Darwin/libcblite* ${{ github.workspace }}/dist
+        cp ${{ github.workspace }}/out/Windows/cblite.dll ${{ github.workspace }}/dist
+        npm install
+        npm run package-only
 
     - name: Publish
       uses: softprops/action-gh-release@v1
