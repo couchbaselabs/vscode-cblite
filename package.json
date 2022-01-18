@@ -30,6 +30,10 @@
 		"onCommand:cblite.newQueryN1ql",
 		"onCommand:cblite.newQueryJson"
 	],
+	"cmake-js": {
+		"runtime": "node",
+		"runtimeVersion": "14.15.0"
+	},
 	"main": "./dist/extension",
 	"contributes": {
 		"commands": [
