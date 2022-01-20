@@ -8,9 +8,9 @@ import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
 import { N1QLProvider } from "./providers/n1ql.provider";
 import { ShowMoreItem } from "./explorer/treeItem";
-import { buildSchema, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
-import { CBLErrorDomain, Database, DatabaseConfiguration, LiteCoreErrorCode, MutableDocument, QueryLanguage } from "./native/binding";
-import { basename, dirname } from "path";
+import { buildDocumentSchema, buildSchema, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
+import { Database, MutableDocument, QueryLanguage } from "./native/binding";
+import { openDbAtPath } from "./utils/files";
 
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
@@ -64,7 +64,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerAdd, (dbUri?: Uri) => {
 		let dbPath = dbUri? dbUri.fsPath : undefined;
-        return explorerAdd(undefined, dbPath);
+        return explorerAdd(dbPath);
 	}));
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerRemove, (item?: {obj: Database}) => {
@@ -151,18 +151,16 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 	return Promise.resolve(true);
 }
 
-function useDatabase(): Thenable<string> {
+async function useDatabase(): Promise<string | undefined> {
 	let queryDocument = getEditorDocument();
-	return pickWorkspaceDatabase(false).then(dbPath => {
-		if(queryDocument && dbPath) {
-			let config = new DatabaseConfiguration();
-			config.directory = dirname(dbPath);
-			let db = new Database(basename(dbPath).split(".")[0]);
-			cbliteWorkspace.bindDatabaseToDocument(db, queryDocument);
+	let dbPath = await pickWorkspaceDatabase(false);
+	if(queryDocument && dbPath) {
+		let db = await openDbAtPath(dbPath);
+		if(!db) {
+			return undefined;
 		}
-
-		return Promise.resolve(dbPath);
-	});
+		cbliteWorkspace.bindDatabaseToDocument(db, queryDocument);
+	}
 }
 
 async function getDocument(dbObj: Database, docId: string): Promise<TextDocument|undefined> {
@@ -208,6 +206,9 @@ async function saveDocument(update: boolean) {
 		doc = tmp;
 	}
 
+	doc.setPropertiesAsJSON(vscodeDoc.getText());
+	explorerUpdateDocument(db, doc);
+
 	try {
 		db.saveDocument(doc);
 	} catch(err: any) {
@@ -215,38 +216,36 @@ async function saveDocument(update: boolean) {
 		return;
 	}
 
+	explorer.refresh();
 	window.setStatusBarMessage(`Save completed!`, 2000);
 }
 
-async function explorerAdd(password?: string, dbPath?: string): Promise<void> {
+async function explorerAdd(dbPath?: string): Promise<void> {
 	if(dbPath) {
-		try {
-			let schema = buildSchema(dbPath, password);
-			explorer.add(schema);
-		} catch(err: any) {
-			let message = `Failed to open database: ${err.message}`;
-			if(err.domain === CBLErrorDomain.LITE_CORE && 
-				err.code === LiteCoreErrorCode.NOT_A_DATABASE_FILE &&
-				!password) {
-				password = await window.showInputBox({prompt: "Please enter the DB password", password: true});
-				if(!password) {
-					showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
-				} else {
-					await explorerAdd(password, dbPath);
-				}
-			} else {
-				showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
-			}
+		let schema = await buildSchema(dbPath);
+		if(!schema) {
 			return;
 		}
+
+		explorer.add(schema);
 	} else {
 		try {
 			dbPath = await pickWorkspaceDatabase(false);
-			await explorerAdd(password, dbPath);
+			await explorerAdd(dbPath);
 		} catch(err: any) {
 			// No database selected
 		}
 	}
+}
+
+function explorerUpdateDocument(dbObj: Database, doc: MutableDocument): void {
+	let schemaDb = explorer.get(dbObj);
+	if(!schemaDb) {
+		return;
+	}
+
+	let schema = buildDocumentSchema(schemaDb, doc);
+	explorer.update(dbObj, schema);
 }
 
 function explorerRemove(dbObj?: Database): Thenable<void> {

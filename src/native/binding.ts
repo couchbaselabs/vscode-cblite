@@ -1,32 +1,52 @@
 let addon: any;
 const os = require("os");
-import { logger } from "../logging/logger";
+let l: any;
+try {
+    l = require("../logging/logger");
+} catch(e) {
+    console.log("VSCode logging unavailable");
+}
+
+function print_load_error(e: any) {
+    if(l) {
+        l.logger.error("Failed to load...");
+        l.logger.error(e);
+    } else {
+        console.log("Failed to load...");
+        console.log(e);
+    }
+}
+
+function print_msg(msg: string) {
+    if(l) {
+        l.logger.info(msg);
+    } else {
+        console.log(msg);
+    }
+}
 
 if(os.platform() === "win32") {
-    logger.info("Loading Windows NAPI addon...");
+    print_msg("Loading Windows NAPI addon...");
     try {
         addon = require("../../out/Windows/cblite-js.node");
     } catch(e) {
-        logger.error("Failed to load...");
-        logger.error(e);
+        print_load_error(e);
         throw e;
     }
 } else if(os.platform() === "darwin") {
-    logger.info("Loading macOS NAPI addon...");
+    print_msg("Loading macOS NAPI addon...");
     try {
         addon = require("../../out/Darwin/cblite-js.node");
     } catch(e) {
-        logger.error("Failed to load...");
-        logger.error(e);
+        print_load_error(e);
         throw e;
     }
 } else {
-    logger.info("Loading Linux NAPI addon...");
+    print_msg("Loading Linux NAPI addon...");
     try {
         addon = require("../../out/Linux/cblite-js.node");
     } catch(e) {
-        logger.error("Failed to load...");
-        logger.error(e);
+        print_load_error(e);
         throw e;
     }
 }

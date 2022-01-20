@@ -1,7 +1,6 @@
 import { ShowMoreItem } from "../explorer/treeItem";
-import { isDirectorySync } from "../utils/files";
-import { CBLErrorDomain, Database, DatabaseConfiguration, EncryptionKeyMethods, LiteCoreErrorCode, QueryLanguage } from "../native/binding";
-import { basename, dirname } from "path";
+import { openDbAtPath } from "../utils/files";
+import { Database, MutableDocument, QueryLanguage } from "../native/binding";
 
 export type SchemaItem = SchemaDatabase | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
 
@@ -36,24 +35,12 @@ export interface SchemaValue {
 
 export type Schema = SchemaDatabase;
 
-export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
-    if(!isDirectorySync(dbPath)) {
-        let err: any;
-        err.domain = CBLErrorDomain.LITE_CORE;
-        err.code = LiteCoreErrorCode.NOT_A_DATABASE_FILE;
-        err.message = `'${dbPath}' is not a cblite2 folder.`;
-        throw err;
+export async function buildSchema(dbPath: string): Promise<SchemaDatabase | undefined> {
+    let db = await openDbAtPath(dbPath);
+    if(!db) {
+        return undefined;
     }
 
-    let config: DatabaseConfiguration = new DatabaseConfiguration();
-    config.directory = dirname(dbPath);
-    if(password) {
-        config.encryptionKey = EncryptionKeyMethods.createFromPassword(password);
-    }
-
-    let filename = basename(dbPath);
-    filename = filename.substr(0, filename.lastIndexOf(".")) || filename;
-    let db = new Database(filename, config);
     let query = db.createQuery(QueryLanguage.N1QL, "SELECT *, meta().id FROM _");
     let results = query.execute();
 
@@ -83,6 +70,21 @@ export function buildSchema(dbPath: string, password?: string): SchemaDatabase {
     });
 
     return schema;
+}
+
+export function buildDocumentSchema(db: SchemaDatabase, doc: MutableDocument) : SchemaDocument {
+    let schemaDoc: SchemaDocument = {
+        parent: db,
+        id: doc.id,
+        keys: []
+    };
+
+    let content = JSON.parse(doc.propertiesAsJSON());
+    for(let key in content) {
+        recursiveBuild(schemaDoc, schemaDoc.keys, content[key], key);
+    }
+
+    return schemaDoc;
 }
 
 function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item: any, key?: string): void {

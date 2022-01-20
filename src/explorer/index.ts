@@ -1,5 +1,5 @@
 import { commands, Disposable, ExtensionContext, window } from "vscode";
-import { SchemaDatabase } from "../common";
+import { SchemaDatabase, SchemaDocument } from "../common";
 import { Constants } from "../constants/constants";
 import { Database } from "../native/binding";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
@@ -26,6 +26,26 @@ class Explorer implements Disposable {
             commands.executeCommand('setContext', 'cblite.explorer.show', true);
         }
         
+    }
+
+    update(dbObj: Database, document: SchemaDocument): void {
+        let schemaDb = this.get(dbObj);
+        if(!schemaDb) {
+            return;
+        }
+
+        let index = schemaDb.documents.findIndex(d => d.id === document.id);
+        if(index > -1) {
+            schemaDb.documents[index] = document;
+        } else {
+            schemaDb.documents.push(document);
+        }
+
+        this.refresh();
+    }
+
+    get(dbObj: Database) : SchemaDatabase | undefined {
+        return this.explorerTreeProvider.getDatabaseList().find(x => x.obj.path === dbObj.path);
     }
 
     remove(dbObj: Database) {
