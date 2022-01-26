@@ -4,11 +4,11 @@ import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { SchemaDatabase } from "../common";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
 
-export interface N1QLTree {
+export interface SqlppTree {
     [dbPath: string]: DBItem;
 }
 
-export class N1QLItem extends TreeItem {
+export class SqlppItem extends TreeItem {
     constructor(public readonly name: string, public readonly label: string,
         public readonly collapsibleState: TreeItemCollapsibleState,
         public readonly command?: Command) {
@@ -16,7 +16,7 @@ export class N1QLItem extends TreeItem {
     }
 }
 
-export class DBItem extends N1QLItem {
+export class DBItem extends SqlppItem {
     constructor(public dbPath: string, command?: Command) {
         super(dbPath, basename(dbPath), TreeItemCollapsibleState.Collapsed, command);
         
@@ -33,7 +33,7 @@ export class DBItem extends N1QLItem {
     }
 }
 
-export class DocumentItem extends N1QLItem {
+export class DocumentItem extends SqlppItem {
     constructor(readonly id: string, command?: Command) {
         super(id, id, TreeItemCollapsibleState.Collapsed, command);
 
@@ -50,7 +50,7 @@ export class DocumentItem extends N1QLItem {
     }
 }
 
-export class ValueItem extends N1QLItem {
+export class ValueItem extends SqlppItem {
     constructor(value: any, command?: Command) {
         super(value ? value.toString() : "(null)", value ? value.toString() : "(null)", TreeItemCollapsibleState.None, command);
 
@@ -63,7 +63,7 @@ export class ValueItem extends N1QLItem {
     }
 }
 
-export class CollectionItem extends N1QLItem {
+export class CollectionItem extends SqlppItem {
     constructor(key: string, command?: Command) {
         super(key, key, TreeItemCollapsibleState.Collapsed, command);
 
@@ -76,7 +76,7 @@ export class CollectionItem extends N1QLItem {
     }
 }
 
-export class KeyItem extends N1QLItem {
+export class KeyItem extends SqlppItem {
     constructor(key: string, command?: Command) {
         super(key, key, TreeItemCollapsibleState.Collapsed, command);
 

@@ -1,5 +1,6 @@
 .eslintrc.json
 .gitignore
+.github/
 .vscodeignore
 CMakeLists.txt
 README.md

@@ -22,12 +22,12 @@
 	],
 	"activationEvents": [
 		"onLanguage:db",
-		"onLanguage:n1ql",
+		"onLanguage:sqlpp",
 		"onLanguage:json",
 		"onCommand:cblite.showOutputChannel",
 		"onCommand:cblite.explorer.add",
 		"onCommand:cblite.explorer.remove",
-		"onCommand:cblite.newQueryN1ql",
+		"onCommand:cblite.newQuerySqlpp",
 		"onCommand:cblite.newQueryJson"
 	],
 	"cmake-js": {
@@ -88,8 +88,8 @@
 				"category": "cblite"
 			},
 			{
-				"command": "cblite.newQueryN1ql",
-				"title": "New N1QL Query",
+				"command": "cblite.newQuerySqlpp",
+				"title": "New SQL++ Query",
 				"category": "cblite"
 			},
 			{
@@ -119,7 +119,7 @@
 				"command": "cblite.runDocumentQuery",
 				"key": "ctrl+shift+q",
 				"mac": "cmd+shift+q",
-				"when": "editorLangId =~ /n1ql/ || (config.cblite.enableJSON && editorLangId =~ /json/)"
+				"when": "editorLangId =~ /sqlpp/ || (config.cblite.enableJSON && editorLangId =~ /json/)"
 			}
 		],
 		"views": {
@@ -167,7 +167,7 @@
 					"when": "false"
 				},
 				{
-					"command": "cblite.newQueryN1ql",
+					"command": "cblite.newQuerySqlpp",
 					"group": "cblite"
 				},
 				{
@@ -177,12 +177,12 @@
 				},
 				{
 					"command": "cblite.runDocumentQuery",
-					"when": "editorLangId =~ /n1ql/ || (config.cblite.enableJSON && editorLangId =~ /json/)",
+					"when": "editorLangId =~ /sqlpp/ || (config.cblite.enableJSON && editorLangId =~ /json/)",
 					"group": "cblite"
 				},
 				{
 					"command": "cblite.useDatabase",
-					"when": "editorLangId =~ /n1ql/ || editorLangId =~ /json/",
+					"when": "editorLangId =~ /sqlpp/ || editorLangId =~ /json/",
 					"group": "cblite"
 				},
 				{
@@ -205,14 +205,14 @@
 			],
 			"editor/context": [
 				{
-					"when": "editorTextFocus && editorLangId =~ /(n1ql|json)/",
+					"when": "editorTextFocus && editorLangId =~ /(sqlpp|json)/",
 					"command": "cblite.useDatabase",
 					"group": "9.1_cblite@3"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "cblite.newQueryN1ql",
+					"command": "cblite.newQuerySqlpp",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
 					"group": "2_query@1"
 				},
@@ -275,12 +275,12 @@
 		},
 		"languages": [
 			{
-				"id": "n1ql",
+				"id": "sqlpp",
 				"aliases": [
-					"N1QL"
+					"SQL++"
 				],
 				"extensions": [
-					".n1ql"
+					".sqlpp"
 				]
 			},
 			{
@@ -295,9 +295,9 @@
 		],
 		"grammars": [
 			{
-				"language": "n1ql",
-				"scopeName": "source.sql.n1ql",
-				"path": "./syntaxes/n1ql.tmLanguage.json"
+				"language": "sqlpp",
+				"scopeName": "source.sql.sqlpp",
+				"path": "./syntaxes/sqlpp.tmLanguage.json"
 			}
 		],
 		"configuration": {
@@ -318,7 +318,7 @@
 				"cblite.enableJSON": {
 					"type": "boolean",
 					"default": false,
-					"description": "[ADVANCED] If enabled, adds the ability to run JSON queries in addition to N1QL"
+					"description": "[ADVANCED] If enabled, adds the ability to run JSON queries in addition to SQL++"
 				}
 			}
 		}

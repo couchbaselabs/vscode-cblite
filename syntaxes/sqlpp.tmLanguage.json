@@ -1,12 +1,12 @@
 {
-    "scopeName": "source.sql.n1ql",
+    "scopeName": "source.sql.sqlpp",
     "patterns": [{
         "include": "#comment"
     }, {
-        "include": "#n1ql-stmt"
+        "include": "#sqlpp-stmt"
     }],
     "repository": {
-        "n1ql-stmt": {
+        "sqlpp-stmt": {
             "patterns": [{
                 "include": "#select-stmt"
             }]
@@ -21,17 +21,17 @@
         "with-clause-as": {
             "begin": "(?i)\\b(as)\\b\\s*",
             "end": "(?<=\\))",
-            "name": "meta.other.cte-as.sql.n1ql",
+            "name": "meta.other.cte-as.sql.sqlpp",
             "beginCaptures": {
                 "1": {
-                    "name": "keyword.other.sql.n1ql"
+                    "name": "keyword.other.sql.sqlpp"
                 }
             },
             "endCaptures": {},
             "patterns": [{
                 "begin": "\\(",
                 "end": "\\)",
-                "name": "meta.cte-select-stmt.sql.n1ql",
+                "name": "meta.cte-select-stmt.sql.sqlpp",
                 "beginCaptures": {},
                 "endCaptures": {}
             }]
@@ -54,10 +54,10 @@
         "select-stmt-select": {
             "begin": "(?i)\\b(select)\\b\\s*",
             "end": "(?=;)",
-            "name": "meta.statement.select.sql.n1ql",
+            "name": "meta.statement.select.sql.sqlpp",
             "beginCaptures": {
                 "1": {
-                    "name": "keyword.other.DML.sql.n1ql"
+                    "name": "keyword.other.DML.sql.sqlpp"
                 }
             },
             "patterns": [{
@@ -67,10 +67,10 @@
         "select-stmt-values": {
             "begin": "(?i)\\b(values)\\s*",
             "end": "(?=;)",
-            "name": "meta.statement.values.sql.n1ql",
+            "name": "meta.statement.values.sql.sqlpp",
             "beginCaptures": {
                 "1": {
-                    "name": "keyword.other.DML.sql.n1ql"
+                    "name": "keyword.other.DML.sql.sqlpp"
                 }
             },
             "patterns": [{
@@ -90,7 +90,7 @@
                     "name": "punctuation.section.rowvalue.values.end"
                 }
             },
-            "name": "meta.rowvalue.sql.n1ql",
+            "name": "meta.rowvalue.sql.sqlpp",
             "patterns": [{
                 "include": "#expr"
             }, {
@@ -132,7 +132,7 @@
         "literal-value": {
             "patterns": [{
                 "match": "(?i)\\b(null|true|false|missing)\\b",
-                "name": "constant.language.sql.n1ql"
+                "name": "constant.language.sql.sqlpp"
             }, {
                 "include": "#numeric-literal"
             }, {
@@ -142,10 +142,10 @@
         "function": {
             "begin": "(?i)\\b(array_avg|array_contains|array_count|array_ifnull|array_length|array_max|array_min|array_of|array_sum|greatest|least|ifmissing|ifnull|ifmissingornull|missingif|nullif|millis_to_str|millis_to_utc|str_to_millis|str_to_utc|abs|acos|asin|atan|atan2|ceil|cos|degrees|e|exp|floor|ln|log|pi|power|radians|round|sign|sin|sqrt|tan|trunc|regexp_contains|regexp_like|regexp_position|regexp_replace|contains|length|lower|ltrim|rtrim|trim|upper|isarray|isatom|isboolean|isnumber|isobject|isstring|type|toarray|toatom|toboolean|tonumber|toobject|tostring|rank|avg|count|max|min|sum)\\b\\s*(\\()",
             "end": "\\)",
-            "name": "meta.function-call.sql.n1ql",
+            "name": "meta.function-call.sql.sqlpp",
             "beginCaptures": {
                 "1": {
-                    "name": "entity.name.function.sql.n1ql"
+                    "name": "entity.name.function.sql.sqlpp"
                 }
             },
             "patterns": [{
@@ -154,7 +154,7 @@
         },
         "keyword": {
             "match": "(?i)\\b(and|any|as|asc|between|by|case|collate|cross|desc|distinct|else|end|every|from|group|having|in|inner|is|join|left|like|limit|natural|not|offset|on|or|order|outer|regex|right|satisfies|select|then|using|when|where)\\b",
-            "name": "keyword.other.sql.n1ql"
+            "name": "keyword.other.sql.sqlpp"
         },
         "name": {
             "patterns": [{
@@ -172,52 +172,52 @@
         "doublequoted-name": {
             "begin": "\"",
             "end": "\"(?!\")",
-            "name": "string.quoted.double.sql.n1ql",
+            "name": "string.quoted.double.sql.sqlpp",
             "patterns": [{
                 "match": "\"\"",
-                "name": "constant.character.escape.doublequote.sql.n1ql"
+                "name": "constant.character.escape.doublequote.sql.sqlpp"
             }]
         },
         "backquoted-name": {
             "begin": "`",
             "end": "`(?!`)",
-            "name": "string.quoted.backtick.sql.n1ql",
+            "name": "string.quoted.backtick.sql.sqlpp",
             "patterns": [{
                 "match": "``",
-                "name": "constant.character.escape.backquote.sql.n1ql"
+                "name": "constant.character.escape.backquote.sql.sqlpp"
             }]
         },
         "numeric-literal": {
             "match": "(?i)(?<![\\w\\.])((\\d+(\\.\\d*)?|\\.\\d+)(e[-+]?\\d+)?|0x[\\da-f]+)\\b",
-            "name": "constant.numeric.sql.n1ql"
+            "name": "constant.numeric.sql.sqlpp"
         },
         "string-literal": {
             "begin": "'",
             "end": "'(?!')",
             "beginCaptures": {
                 "0": {
-                    "name": "punctuation.definition.string.begin.sql.n1ql"
+                    "name": "punctuation.definition.string.begin.sql.sqlpp"
                 }
             },
             "endCaptures": {
                 "0": {
-                    "name": "punctuation.definition.string.end.sql.n1ql"
+                    "name": "punctuation.definition.string.end.sql.sqlpp"
                 }
             },
-            "name": "string.quoted.single.sql.n1ql",
+            "name": "string.quoted.single.sql.sqlpp",
             "patterns": [{
                 "match": "''",
-                "name": "constant.character.escape.singlequote.sql.n1ql"
+                "name": "constant.character.escape.singlequote.sql.sqlpp"
             }]
         },
         "comment": {
             "patterns": [{
                 "match": "--.*",
-                "name": "comment.line.double-dash.sql.n1ql"
+                "name": "comment.line.double-dash.sql.sqlpp"
             }, {
                 "begin": "/\\*",
                 "end": "\\*/",
-                "name": "comment.block.sql.n1ql"
+                "name": "comment.block.sql.sqlpp"
             }]
         }
     }

@@ -6,7 +6,7 @@ import { logger } from "./logging/logger";
 import { Constants } from "./constants/constants";
 import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
-import { N1QLProvider } from "./providers/n1ql.provider";
+import { SqlppProvider } from "./providers/sqlpp.provider";
 import { ShowMoreItem } from "./explorer/treeItem";
 import { buildDocumentSchema, buildSchema, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
 import { Database, MutableDocument, QueryLanguage } from "./native/binding";
@@ -27,7 +27,7 @@ export namespace Commands {
     export const explorerCopyRelativePath: string = 'cblite.explorer.copyRelativePath';
 	export const explorerGetDocument: string = 'cblite.explorer.getDocument';
 	export const explorerShowMoreItems: string = 'cblite.explorer.showMoreItems';
-    export const newQueryN1ql: string = 'cblite.newQueryN1ql';
+    export const newQuerySqlpp: string = 'cblite.newQuerySqlpp';
     export const newQueryJson: string = 'cblite.newQueryJson';
     export const quickQuery: string = 'cblite.quickQuery';
 	export const createDocument: string = 'cblite.createDocument';
@@ -118,7 +118,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return useDatabase();
 	}));
 	
-	context.subscriptions.push(commands.registerCommand(Commands.newQueryN1ql, (db?: SchemaDatabase) => {
+	context.subscriptions.push(commands.registerCommand(Commands.newQuerySqlpp, (db?: SchemaDatabase) => {
         return newQuery(db?.obj, "select meta().id from _ limit 100");
 	}));
 	
@@ -144,7 +144,7 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 	}));
 
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
-	languages.registerCompletionItemProvider("n1ql", N1QLProvider, ...characters);
+	languages.registerCompletionItemProvider("sqlpp", SqlppProvider, ...characters);
 
 
 	logger.info("Extension activated.");
@@ -282,7 +282,7 @@ async function runDocumentQuery() {
 
 async function runQuery(dbObj: Database, query: string, display: boolean) {
 	let language = window.activeTextEditor?.document.languageId !== "json" 
-		? QueryLanguage.N1QL
+		? QueryLanguage.SQLPP
 		: QueryLanguage.JSON;
 
 	let queryObj = dbObj.createQuery(language, query);

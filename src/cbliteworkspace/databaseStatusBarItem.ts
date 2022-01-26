@@ -22,7 +22,7 @@ export class DatabaseStatusBarItem implements Disposable {
 
     update() {
         let doc = window.activeTextEditor && 
-            (window.activeTextEditor.document.languageId === 'n1ql' || window.activeTextEditor.document.languageId === 'json') ?
+            (window.activeTextEditor.document.languageId === 'sqlpp' || window.activeTextEditor.document.languageId === 'json') ?
             window.activeTextEditor.document : undefined;
 
         if(doc) {

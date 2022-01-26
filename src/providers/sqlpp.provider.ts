@@ -30,7 +30,7 @@ const kFunctions = [
 const kAllCompletions = kReservedWords.map(s => new vscode.CompletionItem(s, vscode.CompletionItemKind.Keyword))
     .concat(kFunctions.map(s => new vscode.CompletionItem(s, vscode.CompletionItemKind.Function)));
 
-export const N1QLProvider = {
+export const SqlppProvider = {
     provideCompletionItems,
     resolveCompletionItem
 };

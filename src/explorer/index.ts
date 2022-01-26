@@ -70,7 +70,7 @@ class Explorer implements Disposable {
     }
 }
 
-export type N1QLItem = treeItem.N1QLItem;
+export type SqlppItem = treeItem.SqlppItem;
 export type DBItem = treeItem.DBItem;
 export type DocumentItem = treeItem.DocumentItem;
 

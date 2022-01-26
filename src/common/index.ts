@@ -41,7 +41,7 @@ export async function buildSchema(dbPath: string): Promise<SchemaDatabase | unde
         return undefined;
     }
 
-    let query = db.createQuery(QueryLanguage.N1QL, "SELECT *, meta().id FROM _");
+    let query = db.createQuery(QueryLanguage.SQLPP, "SELECT *, meta().id FROM _");
     let results = query.execute();
 
     let schema = {

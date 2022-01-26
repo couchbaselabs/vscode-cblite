@@ -226,7 +226,7 @@ export var MutableDocument: {
 
 export enum QueryLanguage {
     JSON,
-    N1QL
+    SQLPP
 }
 
 export interface ValueIndexConfiguration {

@@ -40,7 +40,7 @@ You can now make changes and save back to the database by using the *Update Docu
 
 By default only SQL++ (aka N1QL) commands are enabled, and so only those will be covered here.  Beware of dragons if you enable JSON queries.
 
-To run a query, right click on an opened database and select New N1QL Query.  That will open a new document in which you can run your query and get the results:
+To run a query, right click on an opened database and select New SQL++ Query.  That will open a new document in which you can run your query and get the results:
 
 <img src="resources/readme/run_query.gif" alt="Run a Query" />
 
