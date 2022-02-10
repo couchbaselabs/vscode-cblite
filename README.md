@@ -16,7 +16,7 @@ This can be accomplished in a few different ways.
 <img src="resources/readme/open_pallete.gif" width=500 alt="Open Database With Command Pallete" />
 
 
-:**NOTE**: Opening a database using this plugin will automatically upgrade it to 3.0 version of Couchbase Lite silently.  If this is undesirable, make a copy of the database folder before opening it with the plugin.
+:warning: Opening a database using this plugin will automatically upgrade it to 3.0 version of Couchbase Lite silently.  If this is undesirable, make a copy of the database folder before opening it with the plugin.
 
 ### Interact With Documents
 
