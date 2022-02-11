@@ -57,7 +57,7 @@ export async function buildSchema(dbPath: string): Promise<SchemaDatabase | unde
     results.forEach(raw => {
         let r = raw["_"];
         let doc: SchemaDocument = {
-            id: raw["id"],
+            id: raw["id"] ?? raw["$1"],
             keys: [],
             parent: schema
         };
