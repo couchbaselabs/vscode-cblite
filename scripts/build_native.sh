@@ -3,7 +3,7 @@
 ROOT="$( cd "$(dirname "$0")" ; pwd -P )/.."
 pushd $ROOT
 
-CBL_C_VERSION="3.0.0-beta02"
+CBL_C_VERSION="3.0.0"
 CBL_C_VERSION_SHORT="3.0.0"
 
 case "$OSTYPE" in

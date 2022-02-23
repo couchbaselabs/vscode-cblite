@@ -1,6 +1,6 @@
 Push-Location $PSScriptRoot/..
 
-$CBL_C_VERSION = "3.0.0-beta02"
+$CBL_C_VERSION = "3.0.0"
 $CBL_C_VERSION_SHORT = "3.0.0"
 $DOWNLOAD_URL = "https://packages.couchbase.com/releases/couchbase-lite-c/$CBL_C_VERSION/couchbase-lite-c-enterprise-$CBL_C_VERSION-windows-x86_64.zip"
 

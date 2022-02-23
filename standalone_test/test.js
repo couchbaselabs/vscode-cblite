@@ -54,7 +54,7 @@ db.saveDocument(doc);
 const gotDoc = db.getDocument(doc.id);
 console.log(gotDoc.id, gotDoc.revisionID, gotDoc, gotDoc.blob.digest);
 
-// var query = db.createQuery(QueryLanguage.N1QL, "SELECT * FROM _");
+// var query = db.createQuery(QueryLanguage.SQLPP, "SELECT * FROM _");
 // console.log(query.columnNames());
 // console.log(query.execute());
 
@@ -62,7 +62,7 @@ console.log(gotDoc.id, gotDoc.revisionID, gotDoc, gotDoc.blob.digest);
 
 // console.log("Indexes:", db.getIndexNames());
 // var config = new ValueIndexConfiguration();
-// config.expressionLanguage = QueryLanguage.N1QL;
+// config.expressionLanguage = QueryLanguage.SQLPP;
 // config.expressions = "name";
 // db.createValueIndex("tmp", config);
 // console.log("Indexes:", db.getIndexNames());

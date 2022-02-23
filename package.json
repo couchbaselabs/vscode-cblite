@@ -330,7 +330,8 @@
 		"pretest": "npm run compile && npm run lint",
 		"test": "node --napi-modules standalone_test/test.js",
 		"package-only": "webpack --mode production && vsce package",
-		"package": "npm run build-native && webpack --mode production && vsce package"
+		"package": "npm run build-native && webpack --mode production && vsce package",
+		"tsc": "tsc"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^0.1.3",
