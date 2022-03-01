@@ -5,6 +5,7 @@ set (CMAKE_C_STANDARD 11)
 
 if(APPLE)
     set (CMAKE_INSTALL_RPATH "@loader_path")
+    set (CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 else()
     set (CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
