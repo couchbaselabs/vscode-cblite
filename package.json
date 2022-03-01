@@ -3,7 +3,7 @@
 	"icon": "resources/icon/icon_128x128.png",
 	"displayName": "Couchbase Lite",
 	"description": "Explore and query Couchbase Lite databases",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"publisher": "couchbase",
 	"homepage": "https://www.couchbase.com/products/lite",
 	"repository": {
