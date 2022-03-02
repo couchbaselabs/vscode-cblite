@@ -107,6 +107,14 @@ export class EncryptionKeyMethods {
     public static createFromPassword(password: string) : EncryptionKey {
         return addon.EncryptionKey.createFromPassword(password);
     }
+
+    public static createFromPasswordOld(password: string) : EncryptionKey | undefined {
+        if(addon.EncryptionKey.createFromPasswordOld === null) {
+            return undefined;
+        }
+
+        return addon.EncryptionKey.createFromPasswordOld(password);
+    }
 }
 
 export var EncryptionKey: {

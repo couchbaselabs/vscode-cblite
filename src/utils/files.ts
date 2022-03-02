@@ -5,7 +5,7 @@ import { Commands } from "../extension";
 import { CBLErrorDomain, Database, DatabaseConfiguration, EncryptionKeyMethods, LiteCoreErrorCode } from "../native/binding";
 import { showErrorMessage } from "../vscodewrapper";
 
-export async function openDbAtPath(filePath: string, password?: string): Promise<Database | undefined> {
+export async function openDbAtPath(filePath: string, password?: string, prev_err?: string): Promise<Database | undefined> {
     if(!isDirectorySync(filePath)) {
         let err: any;
         err.domain = CBLErrorDomain.LITE_CORE;
@@ -19,7 +19,17 @@ export async function openDbAtPath(filePath: string, password?: string): Promise
     let config = new DatabaseConfiguration();
     config.directory = dirname(filePath);
     if(password) {
-        config.encryptionKey = EncryptionKeyMethods.createFromPassword(password);
+        if(prev_err) {
+            let key = EncryptionKeyMethods.createFromPasswordOld(password);
+            if(!key) {
+                showErrorMessage(prev_err, {title: "Show output", command: Commands.showOutputChannel});
+                return undefined;
+            }
+
+            config.encryptionKey = key;
+        } else {
+            config.encryptionKey = EncryptionKeyMethods.createFromPassword(password);
+        }
     }
 
     try {
@@ -35,6 +45,8 @@ export async function openDbAtPath(filePath: string, password?: string): Promise
             } else {
                 return await openDbAtPath(filePath, password);
             }
+        } else if(password && !prev_err) {
+            return await openDbAtPath(filePath, password, err);
         } else {
             showErrorMessage(message, {title: "Show output", command: Commands.showOutputChannel});
         }
