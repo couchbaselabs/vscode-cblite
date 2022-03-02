@@ -70,7 +70,7 @@ jobs:
       run: |
         mkdir -p ${{ github.workspace }}/dist
         full_filename=$(ls ${{ github.workspace }}/out/Darwin | grep -P "libcblite\.\d\.\d\.\d\.dylib")
-        short_filename=$(ls ${{ github.workspace }}/out/Darwin | grep -P "libcblite\.\d\.\.dylib")
+        short_filename=$(ls ${{ github.workspace }}/out/Darwin | grep -P "libcblite\.\d\.dylib")
         cp ${{ github.workspace }}/out/Darwin/$full_filename ${{ github.workspace }}/dist
         ln -s $full_filename ${{ github.workspace }}/dist/$short_filename
         ln -s $short_filename ${{ github.workspace }}/dist/libcblite.dylib
