@@ -4,8 +4,12 @@
 #include "cbl++/Database.hh"
 #include "CouchbaseWrapper.hh"
 
+class EncryptionKey
 #ifdef COUCHBASE_ENTERPRISE
-class EncryptionKey : public CouchbaseWrapper<EncryptionKey, CBLEncryptionKey> {
+: public CouchbaseWrapper<EncryptionKey, CBLEncryptionKey> {
+#else
+: public Napi::ObjectWrap<EncryptionKey> {
+#endif
 public:
     CBL_CLASS_BOILERPLATE(EncryptionKey);
 
@@ -13,10 +17,10 @@ public:
     CBL_GETSET(bytes);
 
     static Napi::Value createFromPassword(const Napi::CallbackInfo&);
+    static Napi::Value createFromPasswordOld(const Napi::CallbackInfo&);
 private:
     size_t setBytes(Napi::Env& env, Napi::Value val);
 };
-#endif
 
 class DatabaseConfiguration : public CouchbaseWrapper<DatabaseConfiguration, CBLDatabaseConfiguration> {
 public:
