@@ -74,8 +74,7 @@ jobs:
         cp ${{ github.workspace }}/out/Windows/cblite.dll ${{ github.workspace }}/dist
         npm install
         npm run package-only
+        
 
     - name: Publish
-      uses: softprops/action-gh-release@v1
-      with:
-        files: "vscode-cblite*"
+      run: vsce publish -p {{ secrets.VSCODE_PAT }}
