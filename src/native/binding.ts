@@ -176,7 +176,7 @@ export class Database {
     }
 
     public deleteDatabase(): void {
-        addon.Database.deleteDatabase();
+        this._inner.deleteDatabase();
     }
 
     public getDocument(id: string): Document {
