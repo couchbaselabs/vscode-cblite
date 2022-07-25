@@ -1,6 +1,6 @@
 # Couchbase Lite for VSCode
 
-This is a Visual Studio Code extension for interacting with a Couchbase Lite database. [Couchbase Lite](https://docs.couchbase.com/couchbase-lite/3.0/index.html) is full featured NoSQL JSON document database for mobile, desktop and embedded platforms. This extension includes support for enumerating documents and running ad-hoc queries.  Th plugin is heavily inspired by the [SQLite extension](https://github.com/AlexCovizzi/vscode-sqlite/) that provides similar functionality.
+This is a Visual Studio Code extension for interacting with a Couchbase Lite database. [Couchbase Lite](https://docs.couchbase.com/couchbase-lite/3.0/index.html) is full featured NoSQL JSON document database for mobile, desktop and embedded platforms. This extension includes support for enumerating documents and running ad-hoc queries.  This plugin is heavily inspired by the [SQLite extension](https://github.com/AlexCovizzi/vscode-sqlite/) that provides similar functionality.
 
 ## Quick Tour
 
