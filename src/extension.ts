@@ -1,5 +1,5 @@
 import { commands, ExtensionContext, languages, Position, TextDocument, Uri, window, workspace } from "vscode";
-import { getEditorQueryDocument as getEditorDocument, pickWorkspaceDatabase, createQueryDocument, createDocContentDocument, showErrorMessage } from "./vscodewrapper";
+import { getEditorQueryDocument as getEditorDocument, pickWorkspaceDatabase, createQueryDocument, createDocContentDocument } from "./vscodewrapper";
 import CbliteWorkspace from "./cbliteworkspace";
 import { Configuration, getConfiguration } from "./configuration";
 import { logger } from "./logging/logger";
@@ -27,8 +27,6 @@ export namespace Commands {
     export const explorerCopyRelativePath: string = 'cblite.explorer.copyRelativePath';
 	export const explorerGetDocument: string = 'cblite.explorer.getDocument';
 	export const explorerShowMoreItems: string = 'cblite.explorer.showMoreItems';
-	export const newCollection: string = 'cblite.newCollection';
-	export const deleteCollection: string = 'cblite.deleteCollection';
     export const newQuerySqlpp: string = 'cblite.newQuerySqlpp';
     export const newQueryJson: string = 'cblite.newQueryJson';
     export const quickQuery: string = 'cblite.quickQuery';
@@ -143,32 +141,6 @@ export function activate(context: ExtensionContext): Promise<boolean> {
 
 	context.subscriptions.push(commands.registerCommand(Commands.explorerShowMoreItems, (item: ShowMoreItem) => {
 		item.showMore();
-	}));
-
-	context.subscriptions.push(commands.registerCommand(Commands.newCollection, async (db: SchemaDatabase) => {
-		let scope = await window.showInputBox({prompt: "Specify the scope name (blank for default)..."});
-		let collection = await window.showInputBox({prompt: "Specify the collection name..."})
-		if(!collection) {
-			return;
-		}
-
-		try {
-			let coll = db.obj.createCollection(collection, scope);
-			explorer.addCollection(db, coll);
-		} catch(err: any) {
-			showErrorMessage(`Failed to create collection: ${err.message}`, 
-				{title: "Show output", command: Commands.showOutputChannel});
-		}
-	}));
-
-	context.subscriptions.push(commands.registerCommand(Commands.deleteCollection, (c: SchemaCollection) => {
-		try {
-			c.parent.parent.obj.deleteCollection(c.obj.name, c.obj.scopeName);
-			explorer.removeCollection(c);
-		} catch(err: any) {
-			showErrorMessage(`Failed to delete collection: ${err.message}`, 
-				{title: "Show output", command: Commands.showOutputChannel});
-		}
 	}));
 
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");

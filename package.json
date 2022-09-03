@@ -73,18 +73,8 @@
 				"category": "cblite"
 			},
 			{
-				"command": "cblite.newCollection",
-				"title": "New Collection",
-				"category": "cblite"
-			},
-			{
 				"command": "cblite.explorer.lookupDocument",
 				"title": "Get Document",
-				"category": "cblite"
-			},
-			{
-				"command": "cblite.deleteCollection",
-				"title": "Delete Collection",
 				"category": "cblite"
 			},
 			{
@@ -232,32 +222,24 @@
 					"group": "2_query@2"
 				},
 				{
-					"command": "cblite.newCollection",
-					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "3_collection@1"
+					"command": "cblite.explorer.lookupDocument",
+					"when": "view == cblite.explorer && viewItem == cblite.DBCollectionItem",
+					"group": "2_query@3"
 				},
 				{
 					"command": "cblite.explorer.copyPath",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "4_copy@1"
+					"group": "3_copy@1"
 				},
 				{
 					"command": "cblite.explorer.copyRelativePath",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "4_copy@2"
+					"group": "3_copy@2"
 				},
 				{
 					"command": "cblite.explorer.remove",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "5_utils@1"
-				},
-				{
-					"command": "cblite.explorer.lookupDocument",
-					"when": "view == cblite.explorer && viewItem == cblite.DBCollectionItem"
-				},
-				{
-					"command": "cblite.deleteCollection",
-					"when": "view == cblite.explorer && viewItem == cblite.DBCollectionItem"
+					"group": "4_utils@1"
 				},
 				{
 					"command": "cblite.explorer.copyKey",

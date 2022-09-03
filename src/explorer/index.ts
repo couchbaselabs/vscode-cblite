@@ -1,10 +1,9 @@
 import { commands, Disposable, ExtensionContext, window } from "vscode";
-import { SchemaCollection, SchemaDatabase, SchemaDocument } from "../common";
+import { SchemaDatabase, SchemaDocument } from "../common";
 import { Constants } from "../constants/constants";
-import { Collection, Database } from "../native/binding";
+import { Database } from "../native/binding";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
 import * as treeItem from "./treeItem";
-import { ShowMoreItem } from "./treeItem";
 
 type NewType = SchemaDatabase;
 
@@ -27,48 +26,6 @@ class Explorer implements Disposable {
             commands.executeCommand('setContext', 'cblite.explorer.show', true);
         }
         
-    }
-
-    addCollection(schemaDb: SchemaDatabase, c: Collection): void {
-        let scopeIndex = schemaDb.scopes.findIndex(s => s.name == c.scopeName);
-        if(scopeIndex == -1) {
-            scopeIndex = schemaDb.scopes.length;
-            schemaDb.scopes.push({
-                name: c.scopeName,
-                collections: [],
-                parent: schemaDb
-            });
-        }
-
-        let schemaScope = schemaDb.scopes[scopeIndex];
-        schemaScope.collections.push({
-            obj: c,
-            documents: [],
-            limit: ShowMoreItem.batchSize,
-            parent: schemaScope
-        });
-
-        this.refresh();
-    }
-
-    removeCollection(c: SchemaCollection): void {
-        let schemaScope = c.parent;
-        let collectionIndex = schemaScope.collections.indexOf(c);
-        if(collectionIndex == -1) {
-            return;
-        }
-
-        schemaScope.collections.splice(collectionIndex, 1);
-        if(schemaScope.collections.length === 0) {
-            let scopeIndex = schemaScope.parent.scopes.indexOf(schemaScope);
-            if(scopeIndex == -1) {
-                return;
-            }
-
-            schemaScope.parent.scopes.splice(scopeIndex, 1);
-        }
-
-        this.refresh();
     }
 
     update(dbObj: Database, document: SchemaDocument): void {
