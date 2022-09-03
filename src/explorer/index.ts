@@ -34,28 +34,11 @@ class Explorer implements Disposable {
             return;
         }
 
-        let collection = document.parent;
-        let scope = collection.parent
-
-        let scopeIndex = schemaDb.scopes.indexOf(scope);
-        if(scopeIndex == -1) {
-            return;
-        }
-
-        scope = schemaDb.scopes[scopeIndex];
-        let collectionIndex = scope.collections.indexOf(collection);
-        if(collectionIndex == -1) {
-            return;
-        }
-
-        collection = scope.collections[collectionIndex];
-
-
-        let index = collection.documents.findIndex(d => d.id === document.id);
+        let index = schemaDb.documents.findIndex(d => d.id === document.id);
         if(index > -1) {
-            collection.documents[index] = document;
+            schemaDb.documents[index] = document;
         } else {
-            collection.documents.push(document);
+            schemaDb.documents.push(document);
         }
 
         this.refresh();

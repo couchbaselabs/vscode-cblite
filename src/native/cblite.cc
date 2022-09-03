@@ -1,7 +1,6 @@
 #include "cblite.hh"
 #include "DatabaseConfiguration.hh"
 #include "Database.hh"
-#include "Collection.hh"
 #include "Document.hh"
 #include "Query.hh"
 #include "fleece/Fleece.hh"
@@ -21,16 +20,8 @@ Napi::Object cbl_init_object(Napi::Object& exports, const char* name, Napi::Func
     return exports;
 }
 
-Napi::FunctionReference& cbl_get_constructor(const Napi::Env& env, const char* name) {
-    auto it = _Constructors.find(name);
-    #ifdef DEBUG
-    if(it == _Constructors.end()) {
-        std::string msg = std::string("Missing constructor for ") + name + "; did you forget to Init it?";
-        NAPI_THROW(Napi::Error::New(env, msg), env.Undefined());
-    }
-    #endif
-    
-    return it->second;
+Napi::FunctionReference& cbl_get_constructor(const char* name) {
+    return _Constructors[name];
 }
 
 Napi::Value toJSValue(Napi::Env env, const fleece::Value& value) {
@@ -49,7 +40,7 @@ Napi::Value toJSValue(Napi::Env env, const fleece::Value& value) {
         {
             auto dict = value.asDict();
             if(cbl::Blob::isBlob(dict)) {
-                Napi::Object retVal = cbl_get_constructor(env, "Blob").New({});
+                Napi::Object retVal = cbl_get_constructor("Blob").New({});
                 auto* blob = Napi::ObjectWrap<Blob>::Unwrap(retVal);
                 blob->setInner(cbl::Blob(dict));
                 return retVal;
@@ -119,7 +110,7 @@ void serializeToFleeceArray(Napi::Env env, fleece::MutableArray& array, const Na
                     array.append(subArray);
                 } else {
                     auto obj = next.As<Napi::Object>();
-                    if(obj.InstanceOf(cbl_get_constructor(env, "Blob").Value())) {
+                    if(obj.InstanceOf(cbl_get_constructor("Blob").Value())) {
                         auto* blob = Napi::ObjectWrap<Blob>::Unwrap(obj);
                         array.append((cbl::Blob)*blob);
                     } else {
@@ -166,7 +157,7 @@ void serializeToFleeceDict(Napi::Env env, fleece::MutableDict& dict, const Napi:
                     dict.set(key, subArray);
                 } else {
                     auto obj = value.As<Napi::Object>();
-                    if(obj.InstanceOf(cbl_get_constructor(env, "Blob").Value())) {
+                    if(obj.InstanceOf(cbl_get_constructor("Blob").Value())) {
                         auto* blob = Napi::ObjectWrap<Blob>::Unwrap(obj);
                         dict.set(key, (cbl::Blob)*blob);
                     } else {
@@ -186,7 +177,6 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     DatabaseConfiguration::Init(env, exports);
     EncryptionKey::Init(env, exports);
     Database::Init(env, exports);
-    Collection::Init(env, exports);
     Document::Init(env, exports);
     MutableDocument::Init(env, exports);
     ValueIndexConfiguration::Init(env, exports);

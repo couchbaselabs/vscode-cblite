@@ -168,7 +168,7 @@ Napi::Value EncryptionKey::createFromPassword(const Napi::CallbackInfo& info) {
         NAPI_THROW(Napi::Error::New(env, "Failed to create key from password"), env.Undefined());
     }
 
-    Napi::Object retVal = cbl_get_constructor(env, "EncryptionKey").New({});
+    Napi::Object retVal = cbl_get_constructor("EncryptionKey").New({});
     auto* unwrapped = ObjectWrap<EncryptionKey>::Unwrap(retVal);
     unwrapped->setInner(key);
     return retVal;
@@ -190,7 +190,7 @@ Napi::Value EncryptionKey::createFromPasswordOld(const Napi::CallbackInfo& info)
         NAPI_THROW(Napi::Error::New(env, "Failed to create key from password"), env.Undefined());
     }
 
-    Napi::Object retVal = cbl_get_constructor(env, "EncryptionKey").New({});
+    Napi::Object retVal = cbl_get_constructor("EncryptionKey").New({});
     auto* unwrapped = ObjectWrap<EncryptionKey>::Unwrap(retVal);
     unwrapped->setInner(key);
     return retVal;

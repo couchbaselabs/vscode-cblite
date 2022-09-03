@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cbl++/Query.hh"
 #include "cblite.hh"
 #include "CouchbaseWrapper.hh"
 

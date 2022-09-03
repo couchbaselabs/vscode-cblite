@@ -1,5 +1,4 @@
 #include "Database.hh"
-#include "Collection.hh"
 #include "DatabaseConfiguration.hh"
 #include "Document.hh"
 #include "Query.hh"
@@ -86,96 +85,18 @@ Napi::Value Database::get_path(const Napi::CallbackInfo& info) {
     return Napi::String::New(env, _inner.path());
 }
 
+Napi::Value Database::get_count(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
+
+    return Napi::BigInt::New(env, _inner.count());
+}
+
 Napi::Value Database::get_config(const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
 
     return _config->Value();
-}
-
-Napi::Value Database::getScopeNames(const Napi::CallbackInfo& info) {
-    auto env = info.Env();
-    CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
-
-    try {
-        auto cblVal = _inner.getScopeNames();
-        return toJSValue(env, cblVal); 
-    } CATCH_AND_ASSIGN(env);
-}
-
-Napi::Value Database::getCollectionNames(const Napi::CallbackInfo& info) {
-    auto env = info.Env();
-    CBL_TYPE_ASSERT_RET(env, info.Length() <= 1, CBL_ARGC_ERR_MSG(0 or 1));
-
-    fleece::MutableArray cblVal;
-    try {
-        if(info.Length() == 0) {
-            cblVal = _inner.getCollectionNames();
-        } else {
-            CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
-            std::string scope = info[0].As<Napi::String>();
-            cblVal = _inner.getCollectionNames(scope);
-        } 
-    } CATCH_AND_ASSIGN(env);
-
-    return toJSValue(env, cblVal);
-}
-
-Napi::Value Database::getCollection(const Napi::CallbackInfo& info) {
-    auto env = info.Env();
-    CBL_TYPE_ASSERT_RET(env, info.Length() == 1 || info.Length() == 2,
-        CBL_ARGC_ERR_MSG(1 or 2));
-
-    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
-
-    if(info.Length() == 1) {
-        std::string name = info[0].As<Napi::String>();
-        return cbl_get_constructor(env, "Collection").New({Value(), Napi::Boolean::New(env, false), info[0]});
-    }
-
-    CBL_TYPE_ASSERT(env, info[1].IsString(), CBL_ARGTYPE_ERR_MSG(1, string));
-    return cbl_get_constructor(env, "Collection").New({Value(), Napi::Boolean::New(env, false), info[0], info[1]});
-}
-
-Napi::Value Database::createCollection(const Napi::CallbackInfo& info) {
-    auto env = info.Env();
-    CBL_TYPE_ASSERT_RET(env, info.Length() == 1 || info.Length() == 2,
-        CBL_ARGC_ERR_MSG(1 or 2));
-
-    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
-
-    if(info.Length() == 1) {
-        std::string name = info[0].As<Napi::String>();
-        return cbl_get_constructor(env, "Collection").New({Value(), Napi::Boolean::New(env, true), info[0]});
-    }
-
-    CBL_TYPE_ASSERT(env, info[1].IsString(), CBL_ARGTYPE_ERR_MSG(1, string));
-    return cbl_get_constructor(env, "Collection").New({Value(), Napi::Boolean::New(env, true), info[0], info[1]});
-}
-
-void Database::deleteCollection(const Napi::CallbackInfo& info) { 
-    auto env = info.Env();
-    CBL_TYPE_ASSERT_RET(env, info.Length() == 1 || info.Length() == 2,
-        CBL_ARGC_ERR_MSG(1 or 2));
-
-    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
-    std::string name = info[0].As<Napi::String>();
-    try {
-        if(info.Length() == 1) {
-            _inner.deleteCollection(name);
-        } else {
-            CBL_TYPE_ASSERT(env, info[1].IsString(), CBL_ARGTYPE_ERR_MSG(1, string));
-            std::string scope = info[1].As<Napi::String>();
-            _inner.deleteCollection(name, scope);
-        } 
-    } CATCH_AND_ASSIGN_VOID(env);
-}
-
-Napi::Value Database::getDefaultCollection(const Napi::CallbackInfo& info) { 
-    auto env = info.Env();
-    CBL_TYPE_ASSERT(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
-
-    return cbl_get_constructor(env, "Collection").New({Value(), Napi::Boolean::New(env, false)});
 }
 
 void Database::close(const Napi::CallbackInfo& info) {
@@ -196,8 +117,107 @@ void Database::deleteDb(const Napi::CallbackInfo& info) {
     } CATCH_AND_ASSIGN_VOID(env)
 }
 
+Napi::Value Database::getDocument(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT_RET(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT_RET(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
+
+    auto retVal = ObjectWrap<Document>::Unwrap(cbl_get_constructor("Document").New({}));
+    std::string id = info[0].As<Napi::String>();
+    try {
+        auto inner = _inner.getDocument(id);
+        retVal->setInner(inner);
+        retVal->syncFleeceProperties(env);
+        return retVal->Value();
+    } CATCH_AND_ASSIGN(env)
+}
+
+Napi::Value Database::getMutableDocument(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT_RET(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT_RET(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
+
+    auto retVal = ObjectWrap<MutableDocument>::Unwrap(cbl_get_constructor("MutableDocument").New({}));
+    std::string id = info[0].As<Napi::String>();
+    try {
+        auto inner = _inner.getMutableDocument(id);
+        retVal->setInner(inner);
+        retVal->syncFleeceProperties(env);
+        return retVal->Value();
+    } CATCH_AND_ASSIGN(env)
+}
+
+void Database::saveDocument(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT(env, info[0].IsObject(), CBL_ARGTYPE_ERR_MSG(0, object));
+
+    auto doc = ObjectWrap<MutableDocument>::Unwrap(info[0].As<Napi::Object>());
+    doc->syncJSProperties(env);
+    cbl::MutableDocument cblDoc = *doc;
+    try {
+        _inner.saveDocument(cblDoc);
+    } CATCH_AND_ASSIGN_VOID(env);
+}
+
+void Database::deleteDocument(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT(env, info[0].IsObject(), CBL_ARGTYPE_ERR_MSG(0, object));
+
+    auto doc = ObjectWrap<Document>::Unwrap(info[0].As<Napi::Object>());
+    cbl::Document cblDoc = *doc;
+    try {
+        _inner.deleteDocument(cblDoc);
+    } CATCH_AND_ASSIGN_VOID(env)
+}
+
+void Database::createValueIndex(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 2, CBL_ARGC_ERR_MSG(2));
+    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
+    CBL_TYPE_ASSERT(env, info[1].IsObject(), CBL_ARGTYPE_ERR_MSG(1, object));
+
+    std::string name = info[0].As<Napi::String>();
+    auto* config = ObjectWrap<ValueIndexConfiguration>::Unwrap(info[1].As<Napi::Object>());
+    try {
+        _inner.createValueIndex(name, *config);
+    } CATCH_AND_ASSIGN_VOID(env)
+}
+
+void Database::createFullTextIndex(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 2, CBL_ARGC_ERR_MSG(2));
+    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
+    CBL_TYPE_ASSERT(env, info[1].IsObject(), CBL_ARGTYPE_ERR_MSG(1, object));
+
+    std::string name = info[0].As<Napi::String>();
+    auto* config = ObjectWrap<FullTextIndexConfiguration>::Unwrap(info[1].As<Napi::Object>());
+    try {
+        _inner.createFullTextIndex(name, *config);
+    } CATCH_AND_ASSIGN_VOID(env)
+}
+
+void Database::deleteIndex(const Napi::CallbackInfo& info) {
+auto env = info.Env();
+    CBL_TYPE_ASSERT(env, info.Length() == 1, CBL_ARGC_ERR_MSG(1));
+    CBL_TYPE_ASSERT(env, info[0].IsString(), CBL_ARGTYPE_ERR_MSG(0, string));
+
+    std::string name = info[0].As<Napi::String>();
+    try {
+        _inner.deleteIndex(name);
+    } CATCH_AND_ASSIGN_VOID(env)
+}
+
+Napi::Value Database::getIndexNames(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
+    auto names = _inner.getIndexNames();
+    return toJSValue(env, names);
+}
+
 Napi::Value Database::createQuery(const Napi::CallbackInfo& info) {
-    return cbl_get_constructor(info.Env(), "Query").New({Value(), info[0], info[1]});
+    return cbl_get_constructor("Query").New({Value(), info[0], info[1]});
 }
 
 #define MY_STATIC_METHOD(method) CBL_STATIC_METHOD(Database, method)
@@ -211,15 +231,18 @@ Napi::Object Database::Init(Napi::Env env, Napi::Object exports) {
         MY_STATIC_METHOD(deleteDatabase),
         MY_GETTER(name),
         MY_GETTER(path),
+        MY_GETTER(count),
         MY_GETTER(config),
-        MY_INSTANCE_METHOD(getScopeNames),
-        MY_INSTANCE_METHOD(getCollectionNames),
-        MY_INSTANCE_METHOD(getCollection),
-        MY_INSTANCE_METHOD(createCollection),
-        MY_INSTANCE_METHOD(deleteCollection),
-        MY_INSTANCE_METHOD(getDefaultCollection),
         MY_INSTANCE_METHOD(close),
         InstanceMethod<&Database::deleteDb>("deleteDatabase"),
+        MY_INSTANCE_METHOD(getDocument),
+        MY_INSTANCE_METHOD(getMutableDocument),
+        MY_INSTANCE_METHOD(saveDocument),
+        MY_INSTANCE_METHOD(deleteDocument),
+        MY_INSTANCE_METHOD(createValueIndex),
+        MY_INSTANCE_METHOD(createFullTextIndex),
+        MY_INSTANCE_METHOD(deleteIndex),
+        MY_INSTANCE_METHOD(getIndexNames),
         MY_INSTANCE_METHOD(createQuery)
     });
 

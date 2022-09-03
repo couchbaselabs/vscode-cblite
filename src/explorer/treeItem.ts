@@ -1,7 +1,7 @@
 //import { Schema } from "inspector";
 import { basename, join } from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { SchemaCollection } from "../common";
+import { SchemaDatabase } from "../common";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
 
 export interface SqlppTree {
@@ -30,40 +30,6 @@ export class DBItem extends SqlppItem {
     // @ts-ignore
     get tooltip(): string {
         return this.dbPath;
-    }
-}
-
-export class ScopeItem extends SqlppItem {
-    constructor(readonly name: string, command?: Command) {
-        super(name, name, TreeItemCollapsibleState.Collapsed, command);
-
-        this.contextValue = "cblite.scopeItem";
-        this.iconPath = {
-            light: join(__dirname, "..", "resources", "icon", "light", "bucket.svg"),
-            dark: join(__dirname, "..", "resources", "icon", "dark", "bucket.svg")
-        };
-    }
-
-    // @ts-ignore
-    get tooltip(): string {
-        return this.name;
-    }
-}
-
-export class DBCollectionItem extends SqlppItem {
-    constructor(readonly name: string, command?: Command) {
-        super(name, name, TreeItemCollapsibleState.Collapsed, command);
-
-        this.contextValue = "cblite.DBCollectionItem";
-        this.iconPath = {
-            light: join(__dirname, "..", "resources", "icon", "light", "bucket.svg"),
-            dark: join(__dirname, "..", "resources", "icon", "dark", "bucket.svg")
-        };
-    }
-
-    // @ts-ignore
-    get tooltip(): string {
-        return this.name;
     }
 }
 
@@ -126,10 +92,10 @@ export class KeyItem extends SqlppItem {
 export class ShowMoreItem extends TreeItem {
     static readonly batchSize = 50;
 
-    readonly parent: SchemaCollection;
+    readonly parent: SchemaDatabase;
     readonly tree: ExplorerTreeProvider;
     
-    constructor(parent: SchemaCollection, tree: ExplorerTreeProvider) {
+    constructor(parent: SchemaDatabase, tree: ExplorerTreeProvider) {
         super("Show More...", TreeItemCollapsibleState.None);
 
         this.parent = parent;
