@@ -10,61 +10,6 @@ else()
     set (CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
 
-##### REMOVE LATER WHEN C++ HEADERS ARE A PART OF THE PRODUCT #####
-
-if(NOT CBL_CPP_BRANCH)
-    set(CBL_CPP_BRANCH "master")
-endif()
-
-message(STATUS "Using ${CBL_CPP_BRANCH} to fetch C++ headers")
-
-if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++)
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++)
-endif()
-
-set(
-    CBL_CPP_HEADERS
-    "Base.hh"
-    "Blob.hh"
-    "CouchbaseLite.hh"
-    "Database.hh"
-    "Document.hh"
-    "Query.hh"
-    "Replicator.hh"
-)
-
-set(
-    FLEECE_CPP_HEADERS
-    "Fleece.hh"
-    "Mutable.hh"
-    "slice.hh"
-)
-
-foreach(HEADER IN LISTS CBL_CPP_HEADERS)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++/${HEADER})
-        message(STATUS "Fetching cbl++ header ${HEADER}...")
-        file(
-            DOWNLOAD
-            "https://raw.githubusercontent.com/couchbase/couchbase-lite-C/${CBL_CPP_BRANCH}/include/cbl%2B%2B/${HEADER}"
-            ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/cbl++/${HEADER}
-        )
-    endif()
-endforeach()
-
-foreach(HEADER IN LISTS FLEECE_CPP_HEADERS)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/fleece/${HEADER})
-        message(STATUS "Fetching fleece header ${HEADER}...")
-        file(
-            DOWNLOAD
-            "https://raw.githubusercontent.com/couchbaselabs/fleece/${CBL_CPP_BRANCH}/API/fleece/${HEADER}"
-            ${CMAKE_CURRENT_SOURCE_DIR}/deps/include/fleece/${HEADER}
-        )
-    endif()
-endforeach()
-
-
-##### END REMOVE #####
-
 set(
     SRC_FILES
     src/native/DatabaseConfiguration.cc
@@ -72,12 +17,16 @@ set(
     src/native/Document.cc
     src/native/Query.cc
     src/native/Blob.cc
+    src/native/Collection.cc
     src/native/cblite.cc
 )
 
 include_directories(${CMAKE_JS_INC})
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES} ${CMAKE_JS_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+    $<$<CONFIG:Debug>:DEBUG>
+)
 target_include_directories(
     ${PROJECT_NAME}
     PRIVATE
@@ -92,7 +41,7 @@ target_compile_definitions(
 )
 
 find_package(
-    CouchbaseLite 3.0.0 REQUIRED
+    CouchbaseLite 3.1.0 REQUIRED
     HINTS ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )
 

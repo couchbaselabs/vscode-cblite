@@ -3,6 +3,7 @@
 #include <napi.h>
 #include <vector>
 #include <sstream>
+#include "cbl++/CouchbaseLite.hh"
 
 namespace fleece {
     class Value;
@@ -49,7 +50,7 @@ namespace fleece {
     }
 
 Napi::Object cbl_init_object(Napi::Object& exports, const char* name, Napi::Function& func);
-Napi::FunctionReference& cbl_get_constructor(const char* name);
+Napi::FunctionReference& cbl_get_constructor(const Napi::Env& env, const char* name);
 Napi::Value toJSValue(Napi::Env env, const fleece::Value& val);
 void serializeToFleeceArray(Napi::Env env, fleece::MutableArray& array, const Napi::Array& val);
 void serializeToFleeceDict(Napi::Env env, fleece::MutableDict& dict, const Napi::Object& val);

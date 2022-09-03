@@ -1,23 +1,35 @@
 import { ShowMoreItem } from "../explorer/treeItem";
 import { openDbAtPath } from "../utils/files";
-import { Database, MutableDocument, QueryLanguage } from "../native/binding";
+import { Collection, Database, QueryLanguage } from "../native/binding";
 
-export type SchemaItem = SchemaDatabase | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
+export type SchemaItem = SchemaDatabase | SchemaScope | SchemaCollection | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
 
 export interface ShowMore {
-    parent: SchemaDatabase
+    parent: SchemaCollection
 }
 
 export interface SchemaDatabase {
     obj: Database,
-    documents: SchemaDocument[];
-    limit: number;
+    scopes: SchemaScope[]
+}
+
+export interface SchemaScope {
+    name: string,
+    collections: SchemaCollection[],
+    parent: SchemaDatabase
+}
+
+export interface SchemaCollection {
+    obj: Collection,
+    documents: SchemaDocument[],
+    limit: number,
+    parent: SchemaScope
 }
 
 export interface SchemaDocument {
     id: string,
     keys: SchemaKey[],
-    parent: SchemaDatabase
+    parent: SchemaCollection
 }
 
 export interface SchemaKey {
@@ -41,51 +53,67 @@ export async function buildSchema(dbPath: string): Promise<SchemaDatabase | unde
         return undefined;
     }
 
-    let query = db.createQuery(QueryLanguage.SQLPP, "SELECT *, meta().id FROM _");
-    let results = query.execute();
-
     let schema = {
         obj: db,
-        documents: [],
-        limit: ShowMoreItem.batchSize
+        scopes: []
     } as SchemaDatabase;
 
-    if(results.length === 0) {
-        return schema;   
-    }
-
-    results.forEach(raw => {
-        let r = raw["_"];
-        let doc: SchemaDocument = {
-            id: raw["id"],
-            keys: [],
+    let scopes = db.getScopeNames();
+    scopes.forEach(scope => {
+        let scopeSchema = {
+            name: scope,
+            collections: [],
             parent: schema
-        };
+        } as SchemaScope;
 
-        for(let key in r) {
-            recursiveBuild(doc, doc.keys, r[key], key);
-        }
+        schema.scopes.push(scopeSchema);
+        let collections = db!.getCollectionNames(scope);
+        collections.forEach(collection => {
+            let collectionSchema = {
+                obj: db!.getCollection(collection, scope),
+                documents: [],
+                limit: ShowMoreItem.batchSize,
+                parent: scopeSchema
+            } as SchemaCollection;
 
-        schema.documents.push(doc);
+            scopeSchema.collections.push(collectionSchema);
+            let query = db!.createQuery(QueryLanguage.SQLPP, "SELECT * AS body, meta().id FROM " + scope + "." + collection);
+            let results = query.execute();
+
+            results.forEach(raw => {
+                let r = raw["body"];
+                let doc: SchemaDocument = {
+                    id: raw["id"],
+                    keys: [],
+                    parent: collectionSchema
+                };
+        
+                for(let key in r) {
+                    recursiveBuild(doc, doc.keys, r[key], key);
+                }
+        
+                collectionSchema.documents.push(doc);
+            });
+        });
     });
 
     return schema;
 }
 
-export function buildDocumentSchema(db: SchemaDatabase, doc: MutableDocument) : SchemaDocument {
-    let schemaDoc: SchemaDocument = {
-        parent: db,
-        id: doc.id,
-        keys: []
-    };
+// export function buildDocumentSchema(db: SchemaDatabase, doc: MutableDocument) : SchemaDocument {
+//     let schemaDoc: SchemaDocument = {
+//         parent: db,
+//         id: doc.id,
+//         keys: []
+//     };
 
-    let content = JSON.parse(doc.propertiesAsJSON());
-    for(let key in content) {
-        recursiveBuild(schemaDoc, schemaDoc.keys, content[key], key);
-    }
+//     let content = JSON.parse(doc.propertiesAsJSON());
+//     for(let key in content) {
+//         recursiveBuild(schemaDoc, schemaDoc.keys, content[key], key);
+//     }
 
-    return schemaDoc;
-}
+//     return schemaDoc;
+// }
 
 function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item: any, key?: string): void {
     if(key === "_id") {

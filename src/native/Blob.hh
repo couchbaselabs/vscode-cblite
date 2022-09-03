@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cbl++/Blob.hh"
 #include "cblite.hh"
 #include "CouchbaseWrapper.hh"
 

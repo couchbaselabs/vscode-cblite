@@ -1,6 +1,6 @@
 import { SchemaDatabase, SchemaItem, ShowMore } from "../common";
 import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from "vscode";
-import { DBItem, DocumentItem, KeyItem, ShowMoreItem, ValueItem } from "./treeItem";
+import { DBCollectionItem, DBItem, DocumentItem, KeyItem, ScopeItem, ShowMoreItem, ValueItem } from "./treeItem";
 import { Database } from "../native/binding";
 
 export class ExplorerTreeProvider implements TreeDataProvider<SchemaItem> {
@@ -40,8 +40,12 @@ export class ExplorerTreeProvider implements TreeDataProvider<SchemaItem> {
     }
 
     getTreeItem(item: SchemaItem): TreeItem {
-        if('documents' in item) {
+        if('scopes' in item) {
             return new DBItem(item.obj.path);
+        } else if('collections' in item) {
+            return new ScopeItem(item.name);
+        } else if('documents' in item) {
+            return new DBCollectionItem(item.obj.name);  
         } else if('keys' in item) {
             return new DocumentItem(item.id);
         } else if('name' in item) {
@@ -59,7 +63,11 @@ export class ExplorerTreeProvider implements TreeDataProvider<SchemaItem> {
 
     getChildren(item?: SchemaItem): ProviderResult<SchemaItem[]> {
         if(item) {
-            if('documents' in item) {
+            if('scopes' in item) {
+                return item.scopes;
+            } else if('collections' in item) {
+                return item.collections;
+            } else if('documents' in item) {
                 if(item.limit < item.documents.length) {
                     var l = [];
                     l.push(... item.documents.slice(0, item.limit));

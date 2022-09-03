@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cblite.hh"
-#include "cbl++/Database.hh"
 #include "CouchbaseWrapper.hh"
 
 class EncryptionKey
