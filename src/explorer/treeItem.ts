@@ -39,8 +39,8 @@ export class ScopeItem extends SqlppItem {
 
         this.contextValue = "cblite.scopeItem";
         this.iconPath = {
-            light: join(__dirname, "..", "resources", "icon", "light", "bucket.svg"),
-            dark: join(__dirname, "..", "resources", "icon", "dark", "bucket.svg")
+            light: join(__dirname, "..", "resources", "icon", "light", "scope.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "scope.svg")
         };
     }
 
@@ -56,8 +56,8 @@ export class DBCollectionItem extends SqlppItem {
 
         this.contextValue = "cblite.DBCollectionItem";
         this.iconPath = {
-            light: join(__dirname, "..", "resources", "icon", "light", "bucket.svg"),
-            dark: join(__dirname, "..", "resources", "icon", "dark", "bucket.svg")
+            light: join(__dirname, "..", "resources", "icon", "light", "collection.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "collection.svg")
         };
     }
 

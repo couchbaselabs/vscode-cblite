@@ -42,7 +42,7 @@ export class DatabaseStatusBarItem implements Disposable {
             
             let cblDoc = this.documentDatabase.getDocument(doc);
             if(cblDoc) {
-                this._statusBarItem.tooltip += ` | ${cblDoc.id}`;
+                this._statusBarItem.tooltip += ` | ${cblDoc.collection.scopeName}.${cblDoc.collection.name}.${cblDoc.id}`;
                 this._statusBarItem.text += ` | ${cblDoc.id}`;
             }
 

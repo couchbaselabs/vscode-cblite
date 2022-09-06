@@ -8,6 +8,12 @@
 Collection::Collection(const Napi::CallbackInfo& info)
     :CouchbaseWrapper(info)
 {
+    if(info.Length() == 0) {
+        // Shell for incoming already created
+        // native object
+        return;
+    }
+
     auto env = info.Env();
     CBL_TYPE_ASSERT(env, info.Length() >= 2 && info.Length() <= 4,
          CBL_ARGC_ERR_MSG(>= 2 or <= 4));
@@ -104,10 +110,10 @@ void Collection::saveDocument(const Napi::CallbackInfo& info) {
     CBL_TYPE_ASSERT(env, info[0].IsObject(), CBL_ARGTYPE_ERR_MSG(0, object));
 
     auto doc = ObjectWrap<MutableDocument>::Unwrap(info[0].As<Napi::Object>());
-    doc->syncJSProperties(env);
     cbl::MutableDocument cblDoc = *doc;
     try {
         _inner.saveDocument(cblDoc);
+        doc->syncJSProperties(env);
     } CATCH_AND_ASSIGN_VOID(env);
 }
 

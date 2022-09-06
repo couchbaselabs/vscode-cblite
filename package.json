@@ -36,6 +36,15 @@
 	},
 	"main": "./dist/extension",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cblite_container",
+					"title": "Couchbase",
+					"icon": "resources/icon/logo.svg"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "cblite.showOutputChannel",
@@ -133,10 +142,10 @@
 			}
 		],
 		"views": {
-			"explorer": [
+			"cblite_container": [
 				{
 					"id": "cblite.explorer",
-					"name": "cblite explorer",
+					"name": "CBLite explorer",
 					"when": "cblite.explorer.show"
 				}
 			]
@@ -369,6 +378,7 @@
 	},
 	"dependencies": {
 		"bindings": "^1.5.0",
+		"json-bigint": "^1.0.0",
 		"node-addon-api": "^4.0.0",
 		"ts-loader": "^9.2.6"
 	}

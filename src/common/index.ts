@@ -1,6 +1,6 @@
 import { ShowMoreItem } from "../explorer/treeItem";
 import { openDbAtPath } from "../utils/files";
-import { Collection, Database, QueryLanguage } from "../native/binding";
+import { Collection, Database, MutableDocument, QueryLanguage } from "../native/binding";
 
 export type SchemaItem = SchemaDatabase | SchemaScope | SchemaCollection | SchemaDocument | SchemaKey | SchemaValue | ShowMore;
 
@@ -100,20 +100,20 @@ export async function buildSchema(dbPath: string): Promise<SchemaDatabase | unde
     return schema;
 }
 
-// export function buildDocumentSchema(db: SchemaDatabase, doc: MutableDocument) : SchemaDocument {
-//     let schemaDoc: SchemaDocument = {
-//         parent: db,
-//         id: doc.id,
-//         keys: []
-//     };
+export function buildDocumentSchema(c: SchemaCollection, doc: MutableDocument) : SchemaDocument | undefined {
+    let schemaDoc: SchemaDocument = {
+        parent: c,
+        id: doc.id,
+        keys: []
+    };
 
-//     let content = JSON.parse(doc.propertiesAsJSON());
-//     for(let key in content) {
-//         recursiveBuild(schemaDoc, schemaDoc.keys, content[key], key);
-//     }
+    let content = JSON.parse(doc.propertiesAsJSON());
+    for(let key in content) {
+        recursiveBuild(schemaDoc, schemaDoc.keys, content[key], key);
+    }
 
-//     return schemaDoc;
-// }
+    return schemaDoc;
+}
 
 function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item: any, key?: string): void {
     if(key === "_id") {
@@ -153,14 +153,4 @@ function recursiveBuild(owner: SchemaDocument|SchemaKey, collection: any[], item
             collection.push({value: item, parent: owner} as SchemaValue);
         }
     }
-}
-
-export function stringify(obj: any): string {
-    return JSON.stringify(obj, (key, value) => {
-        if(value === null) {
-            return null;
-        }
-
-        return typeof value === "bigint" ? value.toString() + "n" : value;
-    });
 }

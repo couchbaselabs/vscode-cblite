@@ -10,5 +10,5 @@ export namespace Constants {
     export const outputChannelName = `${extentionDisplayName}`;
 
     /* explorer */
-    export const cbliteExplorerViewId = pkg.contributes.views.explorer[0].id;
+    export const cbliteExplorerViewId = pkg.contributes.views.cblite_container[0].id;
 }

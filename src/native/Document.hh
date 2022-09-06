@@ -12,6 +12,7 @@ public:
     Napi::Value get_id(const Napi::CallbackInfo&);
     Napi::Value get_revisionID(const Napi::CallbackInfo&);
     Napi::Value get_sequence(const Napi::CallbackInfo&);
+    Napi::Value get_collection(const Napi::CallbackInfo&);
 
     Napi::Value propertiesAsJSON(const Napi::CallbackInfo&);
 
@@ -25,6 +26,7 @@ public:
     Napi::Value get_id(const Napi::CallbackInfo&);
     Napi::Value get_revisionID(const Napi::CallbackInfo&);
     Napi::Value get_sequence(const Napi::CallbackInfo&);
+    Napi::Value get_collection(const Napi::CallbackInfo&);
 
     Napi::Value propertiesAsJSON(const Napi::CallbackInfo&);
     void setPropertiesAsJSON(const Napi::CallbackInfo&);

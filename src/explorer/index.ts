@@ -25,6 +25,7 @@ class Explorer implements Disposable {
         let length = this.explorerTreeProvider.addToTree(database);
         if(length > 0) {
             commands.executeCommand('setContext', 'cblite.explorer.show', true);
+            commands.executeCommand('cblite.explorer.focus');
         }
         
     }
@@ -41,6 +42,10 @@ class Explorer implements Disposable {
         }
 
         let schemaScope = schemaDb.scopes[scopeIndex];
+        if(schemaDb.scopes.findIndex(col => col.name == c.name) != -1) {
+            return;
+        }
+
         schemaScope.collections.push({
             obj: c,
             documents: [],
@@ -71,29 +76,7 @@ class Explorer implements Disposable {
         this.refresh();
     }
 
-    update(dbObj: Database, document: SchemaDocument): void {
-        let schemaDb = this.get(dbObj);
-        if(!schemaDb) {
-            return;
-        }
-
-        let collection = document.parent;
-        let scope = collection.parent
-
-        let scopeIndex = schemaDb.scopes.indexOf(scope);
-        if(scopeIndex == -1) {
-            return;
-        }
-
-        scope = schemaDb.scopes[scopeIndex];
-        let collectionIndex = scope.collections.indexOf(collection);
-        if(collectionIndex == -1) {
-            return;
-        }
-
-        collection = scope.collections[collectionIndex];
-
-
+    update(collection: SchemaCollection, document: SchemaDocument): void {
         let index = collection.documents.findIndex(d => d.id === document.id);
         if(index > -1) {
             collection.documents[index] = document;
@@ -106,6 +89,26 @@ class Explorer implements Disposable {
 
     get(dbObj: Database) : SchemaDatabase | undefined {
         return this.explorerTreeProvider.getDatabaseList().find(x => x.obj.path === dbObj.path);
+    }
+
+    getCollection(dbObj: Database, c: Collection) : SchemaCollection | undefined {
+        let db = this.get(dbObj);
+        if(!db) {
+            return undefined;
+        }
+
+        let sIndex = db.scopes.findIndex(s => s.name == c.scopeName);
+        if(sIndex == -1) {
+            return undefined;
+        }
+
+        let schemaScope = db.scopes[sIndex];
+        let cIndex = schemaScope.collections.findIndex(col => col.obj.name == c.name);
+        if(cIndex == -1) {
+            return undefined;
+        }
+
+        return schemaScope.collections[cIndex];
     }
 
     remove(dbObj: Database) {

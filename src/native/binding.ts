@@ -221,7 +221,8 @@ export class Database {
 export interface Document {
     id: string
     revisionID: string
-    sequence: BigInt
+    sequence: bigint
+    collection: Collection
     propertiesAsJSON(): string
 }
 

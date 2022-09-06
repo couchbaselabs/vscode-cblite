@@ -85,15 +85,15 @@ export function pickWorkspaceDatabase(autopick: boolean, hint?: string): Thenabl
 }
 
 export function pickListCollection(dbObj: Database): Thenable<{scope: string, name: string}> {
-    let items: QuickPick.CollectionItem[];
+    let items: QuickPick.CollectionItem[] = [];
     dbObj.getScopeNames().forEach(scope => {
-        dbObj.getCollectionNames().forEach(collection => {
+        dbObj.getCollectionNames(scope).forEach(collection => {
             items.push(new QuickPick.CollectionItem(scope, collection));
         });
     });
 
     return new Promise((resolve, reject) => {
-        showAutoQuickPick(true, items, 'Choose a collection to use.').then(item => {
+        showAutoQuickPick(false, items, 'Choose a collection to use.').then(item => {
             if(item instanceof QuickPick.CollectionItem) {
                 resolve({scope: item.scope, name: item.name})
             } else {

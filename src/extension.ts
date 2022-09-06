@@ -8,9 +8,11 @@ import Explorer from "./explorer";
 import Clipboard from "./utils/clipboard";
 import { SqlppProvider } from "./providers/sqlpp.provider";
 import { ShowMoreItem } from "./explorer/treeItem";
-import { buildSchema, SchemaCollection, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue, stringify } from "./common";
-import { Collection, Database, QueryLanguage } from "./native/binding";
+import { buildDocumentSchema, buildSchema, SchemaCollection, SchemaDatabase, SchemaDocument, SchemaItem, SchemaValue } from "./common";
+import { Collection, Database, MutableDocument, QueryLanguage } from "./native/binding";
 import { openDbAtPath } from "./utils/files";
+import { pickListCollection } from "./vscodewrapper/quickPick";
+var JSONstrict = require('json-bigint')({ strict: true, useNativeBigInt: true });
 
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
@@ -128,13 +130,13 @@ export function activate(context: ExtensionContext): Promise<boolean> {
         return newQuery(db?.obj, '{\n\t"LIMIT":100,\n\t"WHAT": [["._id"]]\n}');
 	}));
 
-	// context.subscriptions.push(commands.registerCommand(Commands.createDocument, () => {
-	// 	return saveDocument(false);
-	// }));
+	context.subscriptions.push(commands.registerCommand(Commands.createDocument, () => {
+		return saveDocument(false);
+	}));
 
-	// context.subscriptions.push(commands.registerCommand(Commands.updateDocument, () => {
-	// 	return saveDocument(true);
-	// }));
+	context.subscriptions.push(commands.registerCommand(Commands.updateDocument, () => {
+		return saveDocument(true);
+	}));
 	
 	context.subscriptions.push(commands.registerCommand(Commands.explorerGetDocument, (doc: SchemaDocument) => {
 		let docId = doc.id;
@@ -200,53 +202,59 @@ async function getDocument(dbObj: Database, collection: Collection, docId: strin
 	return contentDoc;
 }
 
-// async function saveDocument(update: boolean) {
-// 	let vscodeDoc = getEditorDocument();
-// 	if(!vscodeDoc) {
-// 		return;
-// 	}
+async function saveDocument(update: boolean) {
+	let vscodeDoc = getEditorDocument();
+	if(!vscodeDoc) {
+		return;
+	}
 
-// 	let db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
-// 	if(!db) {
-// 		await useDatabase();
-// 		db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
-// 		if(!db) {
-// 			return;
-// 		}
-// 	}
-// 	let doc: MutableDocument;
-// 	if(update) {
-// 		let tmp = cbliteWorkspace.getDocumentDoc(vscodeDoc);
-// 		if(!tmp) {
-// 			showErrorMessage("Cannot update this document, it has not been saved yet");
-// 			return;
-// 		}
+	let db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+	if(!db) {
+		await useDatabase();
+		db = cbliteWorkspace.getDocumentDatabase(vscodeDoc);
+		if(!db) {
+			return;
+		}
+	}
 
-// 		doc = tmp;
-// 	} else {
-// 		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
-// 		if(!newDocID) {
-// 			return;
-// 		}
+	let doc: MutableDocument;
+	let collection: Collection
+	if(update) {
+		let tmp = cbliteWorkspace.getDocumentDoc(vscodeDoc);
+		if(!tmp) {
+			showErrorMessage("Cannot update this document, it has not been saved yet");
+			return;
+		}
 
-// 		let tmp = new MutableDocument(newDocID);
-// 		cbliteWorkspace.bindDocToDocument(tmp, vscodeDoc);
-// 		doc = tmp;
-// 	}
+		doc = tmp;
+		collection = doc.collection;
+	} else {
+		let newDocID = await window.showInputBox({prompt: "Specify the document ID"});
+		if(!newDocID) {
+			return;
+		}
 
-// 	doc.setPropertiesAsJSON(vscodeDoc.getText());
-// 	explorerUpdateDocument(db, doc);
+		let collectionPick = await pickListCollection(db);
+		collection = db.getCollection(collectionPick.name, collectionPick.scope);
 
-// 	try {
-// 		db.saveDocument(doc);
-// 	} catch(err: any) {
-// 		showErrorMessage(`Failed to save document: ${err.message}`, {title: "Show output", command: Commands.showOutputChannel});
-// 		return;
-// 	}
+		let tmp = new MutableDocument(newDocID);
+		cbliteWorkspace.bindDocToDocument(tmp, vscodeDoc);
+		doc = tmp;
+	}
 
-// 	explorer.refresh();
-// 	window.setStatusBarMessage(`Save completed!`, 2000);
-// }
+	doc.setPropertiesAsJSON(vscodeDoc.getText());
+
+	try {
+		collection.saveDocument(doc);
+	} catch(err: any) {
+		showErrorMessage(`Failed to save document: ${err.message}`, {title: "Show output", command: Commands.showOutputChannel});
+		return;
+	}
+
+	explorerUpdateDocument(db, collection, doc);
+	explorer.refresh();
+	window.setStatusBarMessage(`Save completed!`, 2000);
+}
 
 async function explorerAdd(dbPath?: string): Promise<void> {
 	if(dbPath) {
@@ -266,15 +274,19 @@ async function explorerAdd(dbPath?: string): Promise<void> {
 	}
 }
 
-// function explorerUpdateDocument(dbObj: Database, doc: MutableDocument): void {
-// 	let schemaDb = explorer.get(dbObj);
-// 	if(!schemaDb) {
-// 		return;
-// 	}
+function explorerUpdateDocument(dbObj: Database, collection: Collection, doc: MutableDocument): void {
+	let schemaCollection = explorer.getCollection(dbObj, collection);
+	if(!schemaCollection) {
+		return;
+	}
 
-// 	let schema = buildDocumentSchema(schemaDb, doc);
-// 	explorer.update(dbObj, schema);
-// }
+	let schema = buildDocumentSchema(schemaCollection, doc);
+	if(!schema) {
+		return;
+	}
+
+	explorer.update(schemaCollection, schema);
+}
 
 function explorerRemove(dbObj?: Database): Thenable<void> {
 	if(dbObj) {
@@ -321,7 +333,7 @@ async function runQuery(dbObj: Database, query: string, display: boolean) {
 	}
 
 	if(display) {
-		var doc = await workspace.openTextDocument({content: stringify(results), language: "json"});
+		var doc = await workspace.openTextDocument({content: JSONstrict.stringify(results), language: "json"});
 		await window.showTextDocument(doc, {preview: false});
 	}
 }
