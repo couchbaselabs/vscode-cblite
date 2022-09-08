@@ -17,11 +17,9 @@ var JSONstrict = require('json-bigint')({ strict: true, useNativeBigInt: true })
 export namespace Commands {
 	export const showOutputChannel: string = "cblite.showOutputChannel";
 	export const runDocumentQuery: string = "cblite.runDocumentQuery";
-	//export const runSelectedQuery: string = "cblite.runSelectedQuery";
 	export const useDatabase: string = 'cblite.useDatabase';
 	export const explorerAdd: string = 'cblite.explorer.add';
 	export const explorerRemove: string = 'cblite.explorer.remove';
-	// export const explorerRefresh: string = 'cblite.explorer.refresh';
 	export const explorerCopyKey: string = 'cblite.explorer.copyKey';
 	export const explorerCopyValue: string = 'cblite.explorer.copyValue';
     export const explorerCopyPath: string = 'cblite.explorer.copyPath';
@@ -238,7 +236,6 @@ async function saveDocument(update: boolean) {
 		collection = db.getCollection(collectionPick.name, collectionPick.scope);
 
 		let tmp = new MutableDocument(newDocID);
-		cbliteWorkspace.bindDocToDocument(tmp, vscodeDoc);
 		doc = tmp;
 	}
 
@@ -249,6 +246,10 @@ async function saveDocument(update: boolean) {
 	} catch(err: any) {
 		showErrorMessage(`Failed to save document: ${err.message}`, {title: "Show output", command: Commands.showOutputChannel});
 		return;
+	}
+
+	if(!update) {
+		cbliteWorkspace.bindDocToDocument(doc, vscodeDoc);
 	}
 
 	explorerUpdateDocument(db, collection, doc);
