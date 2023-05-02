@@ -36,6 +36,15 @@
 	},
 	"main": "./dist/extension",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cblite_container",
+					"title": "Couchbase",
+					"icon": "resources/icon/logo.svg"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "cblite.showOutputChannel",
@@ -73,8 +82,18 @@
 				"category": "cblite"
 			},
 			{
+				"command": "cblite.newCollection",
+				"title": "New Collection",
+				"category": "cblite"
+			},
+			{
 				"command": "cblite.explorer.lookupDocument",
 				"title": "Get Document",
+				"category": "cblite"
+			},
+			{
+				"command": "cblite.deleteCollection",
+				"title": "Delete Collection",
 				"category": "cblite"
 			},
 			{
@@ -123,10 +142,10 @@
 			}
 		],
 		"views": {
-			"explorer": [
+			"cblite_container": [
 				{
 					"id": "cblite.explorer",
-					"name": "cblite explorer",
+					"name": "CBLite explorer",
 					"when": "cblite.explorer.show"
 				}
 			]
@@ -222,24 +241,32 @@
 					"group": "2_query@2"
 				},
 				{
-					"command": "cblite.explorer.lookupDocument",
+					"command": "cblite.newCollection",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "2_query@3"
+					"group": "3_collection@1"
 				},
 				{
 					"command": "cblite.explorer.copyPath",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "3_copy@1"
+					"group": "4_copy@1"
 				},
 				{
 					"command": "cblite.explorer.copyRelativePath",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "3_copy@2"
+					"group": "4_copy@2"
 				},
 				{
 					"command": "cblite.explorer.remove",
 					"when": "view == cblite.explorer && viewItem == cblite.databaseItem",
-					"group": "4_utils@1"
+					"group": "5_utils@1"
+				},
+				{
+					"command": "cblite.explorer.lookupDocument",
+					"when": "view == cblite.explorer && viewItem == cblite.DBCollectionItem"
+				},
+				{
+					"command": "cblite.deleteCollection",
+					"when": "view == cblite.explorer && viewItem == cblite.DBCollectionItem"
 				},
 				{
 					"command": "cblite.explorer.copyKey",
@@ -324,8 +351,8 @@
 		}
 	},
 	"scripts": {
-		"build-native": "cmake-js compile -T install --CDCBL_CPP_BRANCH=release/lithium",
-		"compile": "cmake-js compile --debug -T install --CDCBL_CPP_BRANCH=release/lithium && tsc && webpack --mode development",
+		"build-native": "cmake-js compile -T install",
+		"compile": "cmake-js compile --debug -T install && tsc && webpack --mode development",
 		"lint": "eslint src --ext ts",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node --napi-modules standalone_test/test.js",
@@ -351,6 +378,7 @@
 	},
 	"dependencies": {
 		"bindings": "^1.5.0",
+		"json-bigint": "^1.0.0",
 		"node-addon-api": "^4.0.0",
 		"ts-loader": "^9.2.6"
 	}

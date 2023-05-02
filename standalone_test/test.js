@@ -37,7 +37,7 @@ assert.strictEqual(Database.exists("invalid", "/tmp"), false);
 const dbConfig = new DatabaseConfiguration();
 dbConfig.directory = "/tmp";
 const db = new Database("test", dbConfig);
-console.log(db.name, db.path, db.count.toLocaleString());
+console.log(db.name, db.path);
 
 const doc = new MutableDocument("test-doc");
 console.log(doc.id);
@@ -49,9 +49,13 @@ doc.array = [1, 2, 3];
 doc.blob = new Blob("application/octet-stream", new Uint8Array([0, 1, 2, 3, 4, 5]));
 console.log(doc);
 
-db.saveDocument(doc);
+try {
+    db.getDefaultCollection().saveDocument(doc);
+} catch(err) {
+    console.log(err);
+}
 
-const gotDoc = db.getDocument(doc.id);
+const gotDoc = db.getDefaultCollection().getDocument(doc.id);
 console.log(gotDoc.id, gotDoc.revisionID, gotDoc, gotDoc.blob.digest);
 
 // var query = db.createQuery(QueryLanguage.SQLPP, "SELECT * FROM _");

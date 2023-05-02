@@ -1,7 +1,7 @@
 //import { Schema } from "inspector";
 import { basename, join } from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { SchemaDatabase } from "../common";
+import { SchemaCollection } from "../common";
 import { ExplorerTreeProvider } from "./explorerTreeProvider";
 
 export interface SqlppTree {
@@ -30,6 +30,40 @@ export class DBItem extends SqlppItem {
     // @ts-ignore
     get tooltip(): string {
         return this.dbPath;
+    }
+}
+
+export class ScopeItem extends SqlppItem {
+    constructor(readonly name: string, command?: Command) {
+        super(name, name, TreeItemCollapsibleState.Collapsed, command);
+
+        this.contextValue = "cblite.scopeItem";
+        this.iconPath = {
+            light: join(__dirname, "..", "resources", "icon", "light", "scope.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "scope.svg")
+        };
+    }
+
+    // @ts-ignore
+    get tooltip(): string {
+        return this.name;
+    }
+}
+
+export class DBCollectionItem extends SqlppItem {
+    constructor(readonly name: string, command?: Command) {
+        super(name, name, TreeItemCollapsibleState.Collapsed, command);
+
+        this.contextValue = "cblite.DBCollectionItem";
+        this.iconPath = {
+            light: join(__dirname, "..", "resources", "icon", "light", "collection.svg"),
+            dark: join(__dirname, "..", "resources", "icon", "dark", "collection.svg")
+        };
+    }
+
+    // @ts-ignore
+    get tooltip(): string {
+        return this.name;
     }
 }
 
@@ -92,10 +126,10 @@ export class KeyItem extends SqlppItem {
 export class ShowMoreItem extends TreeItem {
     static readonly batchSize = 50;
 
-    readonly parent: SchemaDatabase;
+    readonly parent: SchemaCollection;
     readonly tree: ExplorerTreeProvider;
     
-    constructor(parent: SchemaDatabase, tree: ExplorerTreeProvider) {
+    constructor(parent: SchemaCollection, tree: ExplorerTreeProvider) {
         super("Show More...", TreeItemCollapsibleState.None);
 
         this.parent = parent;

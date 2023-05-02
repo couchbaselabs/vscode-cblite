@@ -1,4 +1,5 @@
 #include "Document.hh"
+#include "Collection.hh"
 #include <iostream>
 
 template<typename T>
@@ -26,6 +27,16 @@ static Napi::Value get_sequence(T instance, const Napi::CallbackInfo& info) {
 }
 
 template<typename T>
+static Napi::Value get_collection(T instance, const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
+
+    auto* retVal = Napi::ObjectWrap<Collection>::Unwrap(cbl_get_constructor(env, "Collection").New({}));
+    retVal->setInner(instance.collection());
+    return retVal->Value();
+}
+
+template<typename T>
 static Napi::Value propertiesAsJSON(T instance, const Napi::CallbackInfo& info) {
     auto env = info.Env();
     CBL_TYPE_ASSERT_RET(env, info.Length() == 0, CBL_ARGC_ERR_MSG(0));
@@ -50,6 +61,10 @@ Napi::Value Document::get_revisionID(const Napi::CallbackInfo& info) {
 
 Napi::Value Document::get_sequence(const Napi::CallbackInfo& info) {
     return ::get_sequence(_inner, info);
+}
+
+Napi::Value Document::get_collection(const Napi::CallbackInfo& info) {
+    return ::get_collection(_inner, info);
 }
 
 Napi::Value Document::propertiesAsJSON(const Napi::CallbackInfo& info) {
@@ -90,6 +105,10 @@ Napi::Value MutableDocument::get_sequence(const Napi::CallbackInfo& info) {
     return ::get_sequence(_inner, info);
 }
 
+Napi::Value MutableDocument::get_collection(const Napi::CallbackInfo& info) {
+    return ::get_collection(_inner, info);
+}
+
 Napi::Value MutableDocument::propertiesAsJSON(const Napi::CallbackInfo& info) {
     return ::propertiesAsJSON(_inner, info);
 }
@@ -102,6 +121,7 @@ void MutableDocument::setPropertiesAsJSON(const Napi::CallbackInfo& info) {
     std::string json = info[0].As<Napi::String>();
     try {
         _inner.setPropertiesAsJSON(json);
+        syncFleeceProperties(env);
     } CATCH_AND_ASSIGN_VOID(env)
 }
 
@@ -126,6 +146,7 @@ Napi::Object Document::Init(Napi::Env env, Napi::Object exports) {
         MY_GETTER(id),
         MY_GETTER(revisionID),
         MY_GETTER(sequence),
+        MY_GETTER(collection),
         MY_INSTANCE_METHOD(propertiesAsJSON)
     });
 
@@ -144,6 +165,7 @@ Napi::Object MutableDocument::Init(Napi::Env env, Napi::Object exports) {
         MY_GETTER(id),
         MY_GETTER(revisionID),
         MY_GETTER(sequence),
+        MY_GETTER(collection),
         MY_INSTANCE_METHOD(propertiesAsJSON),
         MY_INSTANCE_METHOD(setPropertiesAsJSON)
     });

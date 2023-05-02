@@ -1,6 +1,7 @@
 import { readdirSync, statSync } from "fs";
 import { basename, sep } from "path";
 import { CancellationToken, CancellationTokenSource, QuickPickItem, window, workspace } from "vscode";
+import { Database } from "../native/binding";
 
 export namespace QuickPick {
     export class DatabaseItem implements QuickPickItem {
@@ -16,6 +17,17 @@ export namespace QuickPick {
             this.description = description ?? this.path;
         }
     }
+
+    export class CollectionItem implements QuickPickItem {
+        label: string;
+        detail?: string;
+        picked?: boolean;
+
+        constructor(readonly scope: string, readonly name: string) {
+            this.label = `${scope}.${name}`;
+        }
+    }
+
     export class FileDialogItem implements QuickPickItem {
         label: string;
         description: string;
@@ -67,6 +79,25 @@ export function pickWorkspaceDatabase(autopick: boolean, hint?: string): Thenabl
                 });
             } else {
                 resolve("");
+            }
+        });
+    });
+}
+
+export function pickListCollection(dbObj: Database): Thenable<{scope: string, name: string}> {
+    let items: QuickPick.CollectionItem[] = [];
+    dbObj.getScopeNames().forEach(scope => {
+        dbObj.getCollectionNames(scope).forEach(collection => {
+            items.push(new QuickPick.CollectionItem(scope, collection));
+        });
+    });
+
+    return new Promise((resolve, reject) => {
+        showAutoQuickPick(false, items, 'Choose a collection to use.').then(item => {
+            if(item instanceof QuickPick.CollectionItem) {
+                resolve({scope: item.scope, name: item.name})
+            } else {
+                reject();
             }
         });
     });

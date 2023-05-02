@@ -158,10 +158,6 @@ export class Database {
     public get path(): string {
         return this._inner.path;
     }
-
-    public get count(): BigInt {
-        return this._inner.count;
-    }
     
     public get config(): DatabaseConfiguration {
         return this._inner.config;
@@ -175,40 +171,46 @@ export class Database {
         }
     }
 
+    public getScopeNames(): Array<string> {
+        return this._inner.getScopeNames();
+    }
+
+    public getCollectionNames(scope?: string): Array<string> {
+        return scope
+            ? this._inner.getCollectionNames(scope)
+            : this._inner.getCollectionNames();
+    }
+
+    public getCollection(name: string, scope?: string): Collection {
+        return scope
+            ? this._inner.getCollection(name, scope)
+            : this._inner.getCollection(name);
+    }
+
+    public createCollection(name: string, scope?: string): Collection {
+        return scope
+            ? this._inner.createCollection(name, scope)
+            : this._inner.createCollection(name);
+    }
+
+    public deleteCollection(name: string, scope?: string): void {
+        if(scope) {
+            this._inner.deleteCollection(name, scope);
+        } else {
+            this._inner.deleteCollection(name);
+        }
+    }
+
+    public getDefaultCollection(): Collection {
+        return this._inner.getDefaultCollection();
+    }
+
+    public close(): void { 
+        this._inner.close();
+    }
+
     public deleteDatabase(): void {
         this._inner.deleteDatabase();
-    }
-
-    public getDocument(id: string): Document {
-        return this._inner.getDocument(id);
-    }
-
-    public getMutableDocument(id: string): MutableDocument {
-        return this._inner.getMutableDocument(id);
-    }
-
-    public saveDocument(doc: MutableDocument): void {
-        this._inner.saveDocument(doc);
-    }
-    
-    public deleteDocument(doc: Document): void {
-        this._inner.deleteDocument(doc);
-    }
-
-    public createValueIndex(name: string, config: ValueIndexConfiguration): void {
-        this._inner.createValueIndex(name, config);
-    }
-
-    public createFullTextIndex(name: string, config: FullTextIndexConfiguration): void {
-        this._inner.createFullTextIndex(name, config);
-    }
-
-    public deleteIndex(name: string): void {
-        this._inner.deleteIndex(name);
-    }
-
-    public getIndexNames(): Array<string> {
-        return this._inner.getIndexNames();
     }
     
     public createQuery(language: QueryLanguage, expressions: string): Query {
@@ -219,7 +221,8 @@ export class Database {
 export interface Document {
     id: string
     revisionID: string
-    sequence: BigInt
+    sequence: bigint
+    collection: Collection
     propertiesAsJSON(): string
 }
 
@@ -278,3 +281,17 @@ export interface Blob {
 export var Blob: {
     new(contentType: string, content: ArrayBuffer | Uint8Array): Blob
 } = addon.Blob;
+
+export interface Collection {
+    name: string
+    scopeName: string
+    count: bigint
+    getDocument(id: string) : Document
+    getMutableDocument(id: string) : MutableDocument
+    saveDocument(doc: MutableDocument) : void
+    deleteDocument(doc: Document) : void
+    createValueIndex(name: string, config: ValueIndexConfiguration) : void
+    createFullTextIndex(name: string, config: FullTextIndexConfiguration) : void
+    deleteIndex(name: string) : void
+    getIndexNames() : Array<string>
+}
