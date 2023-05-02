@@ -8,7 +8,7 @@ CBL_C_VERSION_SHORT="3.1.0"
 
 case "$OSTYPE" in
     linux*)
-        DOWNLOAD_URL="https://packages.couchbase.com/releases/couchbase-lite-c/$CBL_C_VERSION/couchbase-lite-c-enterprise-$CBL_C_VERSION-ubuntu20.04-x86_64.tar.gz"
+        DOWNLOAD_URL="https://packages.couchbase.com/releases/couchbase-lite-c/$CBL_C_VERSION/couchbase-lite-c-enterprise-$CBL_C_VERSION-linux-x86_64.tar.gz"
         DOWNLOAD_FILENAME="cbl.tar.gz"
         EXPAND="tar xf"
         ;;
