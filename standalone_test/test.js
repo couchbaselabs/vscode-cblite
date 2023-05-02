@@ -49,27 +49,29 @@ doc.array = [1, 2, 3];
 doc.blob = new Blob("application/octet-stream", new Uint8Array([0, 1, 2, 3, 4, 5]));
 console.log(doc);
 
+var coll = db.getDefaultCollection();
+
 try {
-    db.getDefaultCollection().saveDocument(doc);
+    coll.saveDocument(doc);
 } catch(err) {
     console.log(err);
 }
 
-const gotDoc = db.getDefaultCollection().getDocument(doc.id);
+const gotDoc = coll.getDocument(doc.id);
 console.log(gotDoc.id, gotDoc.revisionID, gotDoc, gotDoc.blob.digest);
 
-// var query = db.createQuery(QueryLanguage.SQLPP, "SELECT * FROM _");
-// console.log(query.columnNames());
-// console.log(query.execute());
+var query = db.createQuery(QueryLanguage.SQLPP, "SELECT * FROM _");
+console.log(query.columnNames());
+console.log(query.execute());
 
-// db.deleteDocument(doc);
+coll.deleteDocument(doc);
 
-// console.log("Indexes:", db.getIndexNames());
-// var config = new ValueIndexConfiguration();
-// config.expressionLanguage = QueryLanguage.SQLPP;
-// config.expressions = "name";
-// db.createValueIndex("tmp", config);
-// console.log("Indexes:", db.getIndexNames());
-// db.deleteIndex("tmp");
+console.log("Indexes:", coll.getIndexNames());
+var config = new ValueIndexConfiguration();
+config.expressionLanguage = QueryLanguage.SQLPP;
+config.expressions = "name";
+coll.createValueIndex("tmp", config);
+console.log("Indexes:", coll.getIndexNames());
+coll.deleteIndex("tmp");
 
 console.log("Tests passed- everything looks OK!");

@@ -112,8 +112,8 @@ void Collection::saveDocument(const Napi::CallbackInfo& info) {
     auto doc = ObjectWrap<MutableDocument>::Unwrap(info[0].As<Napi::Object>());
     cbl::MutableDocument cblDoc = *doc;
     try {
-        _inner.saveDocument(cblDoc);
         doc->syncJSProperties(env);
+        _inner.saveDocument(cblDoc);
     } CATCH_AND_ASSIGN_VOID(env);
 }
 
